@@ -4,6 +4,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import CalendarGrid from "../components/CalendarGrid";
 import DailyRecordForm from "../components/DailyRecordForm";
+import DailyReport from "../components/DailyReport";
 import PrimaryButton from "../components/PrimaryButton";
 import { formatDisplayDate, todayString } from "../lib/date";
 import { generateId } from "../lib/id";
@@ -40,6 +41,7 @@ export default function HomeScreen() {
   const [selectedCatId, setSelectedCatId] = useState<string | null>(null);
   const [viewMonth, setViewMonth] = useState(() => clampMonth(new Date()));
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const [editing, setEditing] = useState(false);
   const [record, setRecord] = useState<DailyRecord | null>(null);
   const [savedMessage, setSavedMessage] = useState(false);
 
@@ -113,29 +115,83 @@ export default function HomeScreen() {
   if (selectedDate && record) {
     const dateLabel =
       selectedDate === today ? `${formatDisplayDate(selectedDate)} (오늘)` : formatDisplayDate(selectedDate);
+    const hasData = markedDates.has(selectedDate);
+
+    const backToCalendar = () => {
+      setSelectedDate(null);
+      setEditing(false);
+    };
+
+    if (editing) {
+      return (
+        <SafeAreaView style={styles.container}>
+          <View style={styles.editHeader}>
+            <Pressable
+              style={styles.backButton}
+              onPress={hasData ? () => setEditing(false) : backToCalendar}
+            >
+              <Text style={styles.backButtonText}>{hasData ? "‹ 리포트" : "‹ 달력"}</Text>
+            </Pressable>
+          </View>
+
+          <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+            <DailyRecordForm
+              catName={selectedCat?.name ?? ""}
+              dateLabel={dateLabel}
+              record={record}
+              onChangeRecord={(updater) => setRecord((prev) => (prev ? updater(prev) : prev))}
+              settings={settings}
+              snacks={snacks}
+              onCreateSnack={handleCreateSnack}
+              savedMessage={savedMessage}
+            />
+          </ScrollView>
+
+          <PrimaryButton label="저장하기" onPress={handleSave} />
+        </SafeAreaView>
+      );
+    }
+
+    if (!hasData) {
+      return (
+        <SafeAreaView style={styles.container}>
+          <View style={styles.editHeader}>
+            <Pressable style={styles.backButton} onPress={backToCalendar}>
+              <Text style={styles.backButtonText}>‹ 달력</Text>
+            </Pressable>
+          </View>
+
+          <View style={styles.emptyStateBody}>
+            <Text style={styles.emptyStateEmoji}>🗒️</Text>
+            <Text style={styles.emptyStateTitle}>기록 없음</Text>
+            <Text style={styles.emptyStateDescription}>
+              {selectedCat?.name}의 {dateLabel} 기록이 아직 없어요
+            </Text>
+          </View>
+
+          <PrimaryButton label="기록하기" onPress={() => setEditing(true)} />
+        </SafeAreaView>
+      );
+    }
 
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.editHeader}>
-          <Pressable style={styles.backButton} onPress={() => setSelectedDate(null)}>
+          <Pressable style={styles.backButton} onPress={backToCalendar}>
             <Text style={styles.backButtonText}>‹ 달력</Text>
           </Pressable>
         </View>
 
         <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-          <DailyRecordForm
+          <DailyReport
             catName={selectedCat?.name ?? ""}
             dateLabel={dateLabel}
             record={record}
-            onChangeRecord={(updater) => setRecord((prev) => (prev ? updater(prev) : prev))}
-            settings={settings}
             snacks={snacks}
-            onCreateSnack={handleCreateSnack}
-            savedMessage={savedMessage}
           />
         </ScrollView>
 
-        <PrimaryButton label="저장하기" onPress={handleSave} />
+        <PrimaryButton label="수정하기" onPress={() => setEditing(true)} />
       </SafeAreaView>
     );
   }
@@ -194,6 +250,28 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontFamily: FONTS.regular,
     color: COLORS.textStrong,
+  },
+  emptyStateBody: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 24,
+  },
+  emptyStateEmoji: {
+    fontSize: 48,
+    marginBottom: 16,
+  },
+  emptyStateTitle: {
+    fontSize: 20,
+    fontFamily: FONTS.bold,
+    color: COLORS.textStrong,
+    marginBottom: 8,
+  },
+  emptyStateDescription: {
+    fontSize: 14,
+    fontFamily: FONTS.regular,
+    color: COLORS.textMuted,
+    textAlign: "center",
   },
   catSwitcher: {
     flexDirection: "row",
