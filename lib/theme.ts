@@ -2,7 +2,7 @@ export const COLORS = {
   background: "#F2F2F2",
   accent: "#2CB9AC",
   accentTint: "rgba(44, 185, 172, 0.12)",
-  cardBorder: "#EFE6D8",
+  cardBorder: "#DADADA",
   cardBackground: "#FFFFFF",
   disabled: "#E7E0D3",
   textStrong: "#3A3229",
