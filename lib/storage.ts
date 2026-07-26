@@ -22,12 +22,19 @@ const DEFAULT_SETTINGS: AppSettings = {
     vomit: true,
     medicine: true,
     weight: true,
+    play: true,
   },
 };
 
 export async function getSettings(): Promise<AppSettings> {
   const raw = await AsyncStorage.getItem(KEYS.settings);
-  return raw ? { ...DEFAULT_SETTINGS, ...JSON.parse(raw) } : DEFAULT_SETTINGS;
+  if (!raw) return DEFAULT_SETTINGS;
+  const parsed = JSON.parse(raw);
+  return {
+    ...DEFAULT_SETTINGS,
+    ...parsed,
+    trackingItems: { ...DEFAULT_SETTINGS.trackingItems, ...parsed.trackingItems },
+  };
 }
 
 export async function saveSettings(settings: AppSettings): Promise<void> {

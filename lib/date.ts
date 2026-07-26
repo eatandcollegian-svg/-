@@ -1,4 +1,4 @@
-import { format } from "date-fns";
+import { differenceInCalendarDays, format } from "date-fns";
 
 export function todayString(): string {
   return format(new Date(), "yyyy-MM-dd");
@@ -6,4 +6,8 @@ export function todayString(): string {
 
 export function formatDisplayDate(dateString: string): string {
   return format(new Date(dateString), "M월 d일");
+}
+
+export function daysSinceBirth(birthDate: string): number {
+  return differenceInCalendarDays(new Date(), new Date(birthDate)) + 1;
 }

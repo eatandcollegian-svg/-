@@ -9,7 +9,6 @@ import type { AppSettings, DailyRecord, PoopCondition, Snack, VomitType, WaterAm
 const POOP_CONDITIONS: PoopCondition[] = ["좋음", "묽음", "설사", "변비"];
 const WATER_AMOUNTS: WaterAmount[] = ["적게", "보통", "많이"];
 const VOMIT_TYPES: VomitType[] = ["없음", "사료", "털", "노란물", "기타"];
-const BOWL_LABELS = ["0", "0.5", "1", "1.5", "2"];
 const GRAM_LABELS = ["0", "20", "40", "60", "80", "100", "120"];
 
 export default function DailyRecordForm({
@@ -35,7 +34,6 @@ export default function DailyRecordForm({
   const [addingSnack, setAddingSnack] = useState(false);
 
   const tracking = settings.trackingItems;
-  const feedOptions = settings.feedUnit === "bowl" ? BOWL_LABELS : GRAM_LABELS;
   const feedAmountLabel = record.feed ? String(record.feed.amount) : null;
 
   const toggleSnack = (snackId: string) => {
@@ -98,16 +96,27 @@ export default function DailyRecordForm({
 
       {tracking.feed && (
         <Section emoji="🍚" title={`식사 (${settings.feedUnit === "bowl" ? "그릇" : "g"})`}>
-          <ChipGroup
-            options={feedOptions}
-            selected={feedAmountLabel}
-            onSelect={(label) =>
-              onChangeRecord((prev) => ({
-                ...prev,
-                feed: { unit: settings.feedUnit, amount: Number(label) },
-              }))
-            }
-          />
+          {settings.feedUnit === "bowl" ? (
+            <Stepper
+              value={record.feed?.amount ?? 0}
+              step={0.5}
+              max={Infinity}
+              onChange={(amount) =>
+                onChangeRecord((prev) => ({ ...prev, feed: { unit: "bowl", amount } }))
+              }
+            />
+          ) : (
+            <ChipGroup
+              options={GRAM_LABELS}
+              selected={feedAmountLabel}
+              onSelect={(label) =>
+                onChangeRecord((prev) => ({
+                  ...prev,
+                  feed: { unit: settings.feedUnit, amount: Number(label) },
+                }))
+              }
+            />
+          )}
         </Section>
       )}
 
@@ -168,7 +177,32 @@ export default function DailyRecordForm({
           <ChipGroup
             options={VOMIT_TYPES}
             selected={record.vomit}
-            onSelect={(vomit) => onChangeRecord((prev) => ({ ...prev, vomit }))}
+            onSelect={(vomit) =>
+              onChangeRecord((prev) => ({
+                ...prev,
+                vomit,
+                vomitNote: vomit === "기타" ? prev.vomitNote : undefined,
+              }))
+            }
+          />
+          {record.vomit === "기타" && (
+            <TextInput
+              style={styles.vomitNoteInput}
+              placeholder="어떤 구토였는지 적어주세요"
+              placeholderTextColor={COLORS.textFaint}
+              value={record.vomitNote ?? ""}
+              onChangeText={(vomitNote) => onChangeRecord((prev) => ({ ...prev, vomitNote }))}
+            />
+          )}
+        </Section>
+      )}
+
+      {tracking.play && (
+        <Section emoji="🧶" title="놀이 (10분 단위)">
+          <Stepper
+            value={record.play?.count ?? 0}
+            max={Infinity}
+            onChange={(count) => onChangeRecord((prev) => ({ ...prev, play: { count } }))}
           />
         </Section>
       )}
@@ -308,6 +342,16 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontFamily: FONTS.bold,
     color: "#FFFFFF",
+  },
+  vomitNoteInput: {
+    borderRadius: 14,
+    borderWidth: 2,
+    borderColor: COLORS.cardBorder,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    fontSize: 14,
+    fontFamily: FONTS.regular,
+    color: COLORS.textStrong,
   },
   medicineRow: {
     flexDirection: "row",

@@ -45,10 +45,14 @@ export default function DailyReport({
     }
   }
   if (record.vomit) {
-    cards.push({ emoji: "🤮", title: "구토", value: record.vomit });
+    const detail = record.vomit === "기타" && record.vomitNote?.trim() ? ` (${record.vomitNote.trim()})` : "";
+    cards.push({ emoji: "🤮", title: "구토", value: `${record.vomit}${detail}` });
   }
   if (record.medicine) {
     cards.push({ emoji: "💊", title: "투약", value: record.medicine.done ? "먹임" : "먹이지 않음" });
+  }
+  if (record.play) {
+    cards.push({ emoji: "🧶", title: "놀이", value: `${record.play.count}회 (${record.play.count * 10}분)` });
   }
   if (record.weight !== undefined) {
     cards.push({ emoji: "⚖️", title: "체중", value: `${record.weight}kg` });

@@ -18,7 +18,7 @@ export default function OnboardingCompleteScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StepHeader step="4 / 4" title="모든 준비가 끝났어요!" />
+      <StepHeader step="4 / 4" title="모든 준비가 끝났어요!" onBack={() => router.back()} />
 
       <View style={styles.body}>
         <Text style={styles.emoji}>🐾</Text>

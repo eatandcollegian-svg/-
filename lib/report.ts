@@ -54,7 +54,16 @@ const VOMIT_CLAUSES: Partial<Record<VomitType, string>> = {
 
 function vomitClause(record: DailyRecord): string | null {
   if (!record.vomit || record.vomit === "없음") return null;
+  if (record.vomit === "기타" && record.vomitNote && record.vomitNote.trim()) {
+    return `${record.vomitNote.trim()} 구토를 했`;
+  }
   return VOMIT_CLAUSES[record.vomit] ?? null;
+}
+
+function playClause(record: DailyRecord): string | null {
+  if (!record.play) return null;
+  if (record.play.count === 0) return "놀아주지는 못했";
+  return `${record.play.count * 10}분 놀아줬`;
 }
 
 function medicineClause(record: DailyRecord): string | null {
@@ -77,6 +86,7 @@ export function buildDailySummary(record: DailyRecord, catName: string, snacks: 
   const categorySentences = [
     joinClauses([poopClause(record), litterBoxClause(record)]),
     joinClauses([feedClause(record), waterClause(record), snackClause(record, snacks)]),
+    joinClauses([playClause(record)]),
     joinClauses([vomitClause(record), medicineClause(record), weightClause(record)]),
   ].filter((sentence): sentence is string => Boolean(sentence));
 

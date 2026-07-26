@@ -15,6 +15,7 @@ export interface Cat {
   id: string;
   name: string;
   photoUri?: string;
+  birthDate?: string;
   createdAt: string;
 }
 
@@ -41,6 +42,10 @@ export interface MedicineRecord {
   done: boolean;
 }
 
+export interface PlayRecord {
+  count: number;
+}
+
 export interface DailyRecord {
   id: string;
   catId: string;
@@ -51,7 +56,9 @@ export interface DailyRecord {
   water?: WaterAmount;
   snacks?: string[];
   vomit?: VomitType;
+  vomitNote?: string;
   medicine?: MedicineRecord;
+  play?: PlayRecord;
   weight?: number;
   note?: string;
   updatedAt: string;
@@ -66,6 +73,7 @@ export interface TrackingItems {
   vomit: boolean;
   medicine: boolean;
   weight: boolean;
+  play: boolean;
 }
 
 export interface AppSettings {

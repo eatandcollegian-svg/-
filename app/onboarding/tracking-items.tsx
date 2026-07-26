@@ -18,6 +18,7 @@ const TRACKING_OPTIONS: { key: keyof TrackingItems; emoji: string; label: string
   { key: "vomit", emoji: "🤮", label: "구토" },
   { key: "medicine", emoji: "💊", label: "투약" },
   { key: "weight", emoji: "⚖️", label: "체중" },
+  { key: "play", emoji: "🧶", label: "놀이" },
 ];
 
 export default function OnboardingTrackingItemsScreen() {
@@ -49,7 +50,7 @@ export default function OnboardingTrackingItemsScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StepHeader step="3 / 4" title="무엇을 기록할까요?" />
+      <StepHeader step="3 / 4" title="무엇을 기록할까요?" onBack={() => router.back()} />
 
       <ScrollView contentContainerStyle={styles.list} showsVerticalScrollIndicator={false}>
         {TRACKING_OPTIONS.map((option) => (

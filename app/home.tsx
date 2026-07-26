@@ -1,12 +1,13 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { useFocusEffect, useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import CalendarGrid from "../components/CalendarGrid";
 import DailyRecordForm from "../components/DailyRecordForm";
 import DailyReport from "../components/DailyReport";
 import PrimaryButton from "../components/PrimaryButton";
-import { formatDisplayDate, todayString } from "../lib/date";
+import { daysSinceBirth, formatDisplayDate, todayString } from "../lib/date";
 import { generateId } from "../lib/id";
 import { getCats, getRecords, getSettings, getSnacks, saveRecords, saveSnacks } from "../lib/storage";
 import { COLORS, FONTS } from "../lib/theme";
@@ -33,6 +34,7 @@ function clampMonth(date: Date): Date {
 }
 
 export default function HomeScreen() {
+  const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [cats, setCats] = useState<Cat[]>([]);
   const [settings, setSettings] = useState<AppSettings | null>(null);
@@ -47,22 +49,31 @@ export default function HomeScreen() {
 
   const today = todayString();
 
-  useEffect(() => {
-    (async () => {
-      const [loadedCats, loadedSettings, loadedSnacks, loadedRecords] = await Promise.all([
-        getCats(),
-        getSettings(),
-        getSnacks(),
-        getRecords(),
-      ]);
-      setCats(loadedCats);
-      setSettings(loadedSettings);
-      setSnacks(loadedSnacks);
-      setAllRecords(loadedRecords);
-      setSelectedCatId(loadedCats[0]?.id ?? null);
-      setLoading(false);
-    })();
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      let cancelled = false;
+      (async () => {
+        const [loadedCats, loadedSettings, loadedSnacks, loadedRecords] = await Promise.all([
+          getCats(),
+          getSettings(),
+          getSnacks(),
+          getRecords(),
+        ]);
+        if (cancelled) return;
+        setCats(loadedCats);
+        setSettings(loadedSettings);
+        setSnacks(loadedSnacks);
+        setAllRecords(loadedRecords);
+        setSelectedCatId((prev) =>
+          prev && loadedCats.some((cat) => cat.id === prev) ? prev : (loadedCats[0]?.id ?? null)
+        );
+        setLoading(false);
+      })();
+      return () => {
+        cancelled = true;
+      };
+    }, [])
+  );
 
   useEffect(() => {
     if (!selectedCatId || !selectedDate) {
@@ -113,8 +124,7 @@ export default function HomeScreen() {
   };
 
   if (selectedDate && record) {
-    const dateLabel =
-      selectedDate === today ? `${formatDisplayDate(selectedDate)} (오늘)` : formatDisplayDate(selectedDate);
+    const dateLabel = formatDisplayDate(selectedDate);
     const hasData = markedDates.has(selectedDate);
 
     const backToCalendar = () => {
@@ -198,6 +208,22 @@ export default function HomeScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
+      <View style={styles.calendarHeader}>
+        <View style={{ flex: 1 }} />
+        <Pressable
+          style={styles.iconButton}
+          onPress={() => {
+            setSelectedDate(today);
+            setEditing(false);
+          }}
+        >
+          <Text style={styles.iconButtonText}>＋</Text>
+        </Pressable>
+        <Pressable style={styles.iconButton} onPress={() => router.push("/settings")}>
+          <Text style={styles.iconButtonText}>⚙</Text>
+        </Pressable>
+      </View>
+
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         {cats.length > 1 && (
           <View style={styles.catSwitcher}>
@@ -229,6 +255,12 @@ export default function HomeScreen() {
           onChangeMonth={(next) => setViewMonth(clampMonth(next))}
           onSelectDate={setSelectedDate}
         />
+
+        {selectedCat?.birthDate && (
+          <Text style={styles.dDayText}>
+            {selectedCat.name} 태어난지 {daysSinceBirth(selectedCat.birthDate)}일
+          </Text>
+        )}
       </ScrollView>
     </SafeAreaView>
   );
@@ -272,6 +304,32 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.regular,
     color: COLORS.textMuted,
     textAlign: "center",
+  },
+  calendarHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 24,
+    paddingTop: 12,
+    gap: 10,
+  },
+  iconButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: COLORS.accentTint,
+  },
+  iconButtonText: {
+    fontSize: 18,
+    fontFamily: FONTS.bold,
+    color: COLORS.accent,
+  },
+  dDayText: {
+    textAlign: "center",
+    fontSize: 14,
+    fontFamily: FONTS.semiBold,
+    color: COLORS.textMuted,
   },
   catSwitcher: {
     flexDirection: "row",

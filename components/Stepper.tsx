@@ -7,18 +7,20 @@ export default function Stepper({
   onChange,
   min = 0,
   max = 20,
+  step = 1,
 }: {
   value: number;
   onChange: (value: number) => void;
   min?: number;
   max?: number;
+  step?: number;
 }) {
   return (
     <View style={styles.container}>
       <Pressable
         style={styles.button}
         disabled={value <= min}
-        onPress={() => onChange(Math.max(min, value - 1))}
+        onPress={() => onChange(Math.max(min, value - step))}
       >
         <Text style={styles.buttonText}>–</Text>
       </Pressable>
@@ -26,7 +28,7 @@ export default function Stepper({
       <Pressable
         style={styles.button}
         disabled={value >= max}
-        onPress={() => onChange(Math.min(max, value + 1))}
+        onPress={() => onChange(Math.min(max, value + step))}
       >
         <Text style={styles.buttonText}>+</Text>
       </Pressable>

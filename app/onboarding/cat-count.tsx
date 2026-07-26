@@ -4,6 +4,7 @@ import { useRouter } from "expo-router";
 import * as ImagePicker from "expo-image-picker";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import BirthDateInput from "../../components/BirthDateInput";
 import PrimaryButton from "../../components/PrimaryButton";
 import StepHeader from "../../components/StepHeader";
 import { generateId } from "../../lib/id";
@@ -15,6 +16,7 @@ interface CatDraft {
   id: string;
   name: string;
   photoUri?: string;
+  birthDate?: string;
 }
 
 export default function OnboardingCatRegisterScreen() {
@@ -35,6 +37,10 @@ export default function OnboardingCatRegisterScreen() {
 
   const updatePhoto = (id: string, photoUri: string) => {
     setCats((prev) => prev.map((cat) => (cat.id === id ? { ...cat, photoUri } : cat)));
+  };
+
+  const updateBirthDate = (id: string, birthDate: string | undefined) => {
+    setCats((prev) => prev.map((cat) => (cat.id === id ? { ...cat, birthDate } : cat)));
   };
 
   const addCat = () => {
@@ -69,6 +75,7 @@ export default function OnboardingCatRegisterScreen() {
         id: cat.id,
         name: cat.name.trim(),
         photoUri: cat.photoUri,
+        birthDate: cat.birthDate,
         createdAt: now,
       }))
     );
@@ -77,7 +84,7 @@ export default function OnboardingCatRegisterScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StepHeader step="2 / 4" title="고양이를 소개해주세요" />
+      <StepHeader step="2 / 4" title="고양이를 소개해주세요" onBack={() => router.back()} />
 
       <ScrollView contentContainerStyle={styles.list} showsVerticalScrollIndicator={false}>
         {cats.map((cat, index) => (
@@ -102,6 +109,12 @@ export default function OnboardingCatRegisterScreen() {
               placeholderTextColor={COLORS.textFaint}
               value={cat.name}
               onChangeText={(text) => updateName(cat.id, text)}
+            />
+
+            <Text style={styles.birthDateLabel}>생년월일 (선택)</Text>
+            <BirthDateInput
+              value={cat.birthDate}
+              onChange={(birthDate) => updateBirthDate(cat.id, birthDate)}
             />
           </View>
         ))}
@@ -180,6 +193,13 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.regular,
     color: COLORS.textStrong,
     textAlign: "center",
+  },
+  birthDateLabel: {
+    marginTop: 14,
+    marginBottom: 8,
+    fontSize: 13,
+    fontFamily: FONTS.regular,
+    color: COLORS.textMuted,
   },
   addButton: {
     borderRadius: 20,
