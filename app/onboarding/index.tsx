@@ -27,7 +27,7 @@ export default function OnboardingHouseholdScreen() {
       <View style={styles.cardList}>
         <ChoiceCard
           emoji="🐱"
-          label="혼묘"
+          label="외동묘"
           description="고양이를 한 마리 키우고 있어요"
           selected={selected === "single"}
           onPress={() => setSelected("single")}
