@@ -1,6 +1,6 @@
 import { StyleSheet, Text, View } from "react-native";
 
-import { COLORS } from "../lib/theme";
+import { COLORS, FONTS } from "../lib/theme";
 
 export default function StepHeader({ step, title }: { step: string; title: string }) {
   return (
@@ -15,14 +15,14 @@ const styles = StyleSheet.create({
   step: {
     marginTop: 12,
     fontSize: 14,
-    fontWeight: "600",
+    fontFamily: FONTS.semiBold,
     color: COLORS.textFaint,
   },
   title: {
     marginTop: 12,
     marginBottom: 32,
     fontSize: 26,
-    fontWeight: "700",
+    fontFamily: FONTS.bold,
     color: COLORS.textStrong,
   },
 });

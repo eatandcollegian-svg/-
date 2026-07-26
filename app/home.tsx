@@ -8,7 +8,7 @@ import Stepper from "../components/Stepper";
 import { formatDisplayDate, todayString } from "../lib/date";
 import { generateId } from "../lib/id";
 import { getCats, getRecords, getSettings, getSnacks, saveRecords, saveSnacks } from "../lib/storage";
-import { COLORS } from "../lib/theme";
+import { COLORS, FONTS } from "../lib/theme";
 import type {
   AppSettings,
   Cat,
@@ -346,16 +346,17 @@ const styles = StyleSheet.create({
   emptyText: {
     margin: 24,
     fontSize: 16,
+    fontFamily: FONTS.regular,
     color: COLORS.textStrong,
   },
   dateText: {
     fontSize: 14,
-    fontWeight: "600",
+    fontFamily: FONTS.semiBold,
     color: COLORS.textFaint,
   },
   title: {
     fontSize: 22,
-    fontWeight: "700",
+    fontFamily: FONTS.bold,
     color: COLORS.textStrong,
     marginBottom: 4,
   },
@@ -378,7 +379,7 @@ const styles = StyleSheet.create({
   },
   catChipLabel: {
     fontSize: 14,
-    fontWeight: "600",
+    fontFamily: FONTS.semiBold,
     color: COLORS.textStrong,
   },
   catChipLabelSelected: {
@@ -394,7 +395,7 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 16,
-    fontWeight: "700",
+    fontFamily: FONTS.bold,
     color: COLORS.textStrong,
   },
   snackRow: {
@@ -416,7 +417,7 @@ const styles = StyleSheet.create({
   },
   chipLabel: {
     fontSize: 14,
-    fontWeight: "600",
+    fontFamily: FONTS.semiBold,
     color: COLORS.textStrong,
   },
   chipLabelSelected: {
@@ -434,6 +435,7 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     paddingHorizontal: 14,
     fontSize: 14,
+    fontFamily: FONTS.regular,
     color: COLORS.textStrong,
     minWidth: 100,
   },
@@ -445,7 +447,7 @@ const styles = StyleSheet.create({
   },
   newSnackConfirmText: {
     fontSize: 14,
-    fontWeight: "700",
+    fontFamily: FONTS.bold,
     color: "#FFFFFF",
   },
   medicineRow: {
@@ -455,7 +457,7 @@ const styles = StyleSheet.create({
   },
   medicineLabel: {
     fontSize: 15,
-    fontWeight: "600",
+    fontFamily: FONTS.semiBold,
     color: COLORS.textStrong,
   },
   weightInput: {
@@ -465,6 +467,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 16,
     fontSize: 16,
+    fontFamily: FONTS.regular,
     color: COLORS.textStrong,
   },
   noteInput: {
@@ -474,6 +477,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 16,
     fontSize: 15,
+    fontFamily: FONTS.regular,
     color: COLORS.textStrong,
     minHeight: 80,
     textAlignVertical: "top",
@@ -481,7 +485,7 @@ const styles = StyleSheet.create({
   savedMessage: {
     textAlign: "center",
     fontSize: 14,
-    fontWeight: "600",
+    fontFamily: FONTS.semiBold,
     color: COLORS.accent,
   },
 });

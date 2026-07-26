@@ -6,7 +6,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import PrimaryButton from "../../components/PrimaryButton";
 import StepHeader from "../../components/StepHeader";
 import { getSettings, saveSettings } from "../../lib/storage";
-import { COLORS } from "../../lib/theme";
+import { COLORS, FONTS } from "../../lib/theme";
 import type { FeedUnit, TrackingItems } from "../../lib/types";
 
 const TRACKING_OPTIONS: { key: keyof TrackingItems; emoji: string; label: string }[] = [
@@ -132,7 +132,7 @@ const styles = StyleSheet.create({
   rowLabel: {
     flex: 1,
     fontSize: 16,
-    fontWeight: "600",
+    fontFamily: FONTS.semiBold,
     color: COLORS.textStrong,
   },
   feedUnitSection: {
@@ -141,7 +141,7 @@ const styles = StyleSheet.create({
   },
   feedUnitLabel: {
     fontSize: 14,
-    fontWeight: "600",
+    fontFamily: FONTS.semiBold,
     color: COLORS.textMuted,
     marginBottom: 10,
   },
@@ -164,7 +164,7 @@ const styles = StyleSheet.create({
   },
   chipLabel: {
     fontSize: 15,
-    fontWeight: "600",
+    fontFamily: FONTS.semiBold,
     color: COLORS.textStrong,
   },
   chipLabelSelected: {

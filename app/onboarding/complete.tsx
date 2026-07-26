@@ -5,7 +5,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import PrimaryButton from "../../components/PrimaryButton";
 import StepHeader from "../../components/StepHeader";
 import { getSettings, saveSettings } from "../../lib/storage";
-import { COLORS } from "../../lib/theme";
+import { COLORS, FONTS } from "../../lib/theme";
 
 export default function OnboardingCompleteScreen() {
   const router = useRouter();
@@ -49,7 +49,7 @@ const styles = StyleSheet.create({
   },
   message: {
     fontSize: 17,
-    fontWeight: "600",
+    fontFamily: FONTS.semiBold,
     color: COLORS.textStrong,
     textAlign: "center",
     lineHeight: 26,

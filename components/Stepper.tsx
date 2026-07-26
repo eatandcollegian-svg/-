@@ -1,6 +1,6 @@
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
-import { COLORS } from "../lib/theme";
+import { COLORS, FONTS } from "../lib/theme";
 
 export default function Stepper({
   value,
@@ -50,14 +50,14 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     fontSize: 18,
-    fontWeight: "700",
+    fontFamily: FONTS.bold,
     color: COLORS.accent,
   },
   value: {
     minWidth: 24,
     textAlign: "center",
     fontSize: 16,
-    fontWeight: "700",
+    fontFamily: FONTS.bold,
     color: COLORS.textStrong,
   },
 });

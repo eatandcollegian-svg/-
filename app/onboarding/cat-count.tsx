@@ -8,7 +8,7 @@ import PrimaryButton from "../../components/PrimaryButton";
 import StepHeader from "../../components/StepHeader";
 import { generateId } from "../../lib/id";
 import { getSettings, saveCats } from "../../lib/storage";
-import { COLORS } from "../../lib/theme";
+import { COLORS, FONTS } from "../../lib/theme";
 import type { HouseholdType } from "../../lib/types";
 
 interface CatDraft {
@@ -177,6 +177,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 16,
     fontSize: 16,
+    fontFamily: FONTS.regular,
     color: COLORS.textStrong,
     textAlign: "center",
   },
@@ -190,7 +191,7 @@ const styles = StyleSheet.create({
   },
   addButtonText: {
     fontSize: 15,
-    fontWeight: "600",
+    fontFamily: FONTS.semiBold,
     color: COLORS.accent,
   },
 });

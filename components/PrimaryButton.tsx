@@ -1,6 +1,6 @@
 import { Pressable, StyleSheet, Text } from "react-native";
 
-import { COLORS } from "../lib/theme";
+import { COLORS, FONTS } from "../lib/theme";
 
 export default function PrimaryButton({
   label,
@@ -36,7 +36,7 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 16,
-    fontWeight: "700",
+    fontFamily: FONTS.bold,
     color: "#FFFFFF",
   },
   labelDisabled: {

@@ -1,6 +1,6 @@
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
-import { COLORS } from "../lib/theme";
+import { COLORS, FONTS } from "../lib/theme";
 
 export default function ChipGroup<T extends string>({
   options,
@@ -49,7 +49,7 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 14,
-    fontWeight: "600",
+    fontFamily: FONTS.semiBold,
     color: COLORS.textStrong,
   },
   labelSelected: {

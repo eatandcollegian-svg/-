@@ -1,3 +1,10 @@
+export const FONTS = {
+  regular: "Pretendard-Regular",
+  medium: "Pretendard-Medium",
+  semiBold: "Pretendard-SemiBold",
+  bold: "Pretendard-Bold",
+};
+
 export const COLORS = {
   background: "#F2F2F2",
   accent: "#2CB9AC",

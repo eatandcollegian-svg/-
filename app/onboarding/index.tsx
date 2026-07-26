@@ -6,7 +6,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import PrimaryButton from "../../components/PrimaryButton";
 import StepHeader from "../../components/StepHeader";
 import { getSettings, saveSettings } from "../../lib/storage";
-import { COLORS } from "../../lib/theme";
+import { COLORS, FONTS } from "../../lib/theme";
 import type { HouseholdType } from "../../lib/types";
 
 export default function OnboardingHouseholdScreen() {
@@ -96,7 +96,7 @@ const styles = StyleSheet.create({
   },
   cardLabel: {
     fontSize: 20,
-    fontWeight: "700",
+    fontFamily: FONTS.bold,
     color: COLORS.textStrong,
     marginBottom: 6,
   },
@@ -105,6 +105,7 @@ const styles = StyleSheet.create({
   },
   cardDescription: {
     fontSize: 14,
+    fontFamily: FONTS.regular,
     color: COLORS.textMuted,
   },
 });
