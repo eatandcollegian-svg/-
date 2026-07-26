@@ -1,5 +1,5 @@
 export const COLORS = {
-  background: "#FFF8ED",
+  background: "#F2F2F2",
   accent: "#2CB9AC",
   accentTint: "rgba(44, 185, 172, 0.12)",
   cardBorder: "#EFE6D8",

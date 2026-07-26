@@ -175,7 +175,7 @@ export default function HomeScreen() {
         )}
 
         {tracking.litterBox && (
-          <Section emoji="🪨" title="감자 (모래 뭉침)">
+          <Section emoji="🪨" title="감자">
             <Stepper
               value={record.litterBox?.count ?? 0}
               onChange={(count) => setRecord((prev) => (prev ? { ...prev, litterBox: { count } } : prev))}
@@ -184,7 +184,7 @@ export default function HomeScreen() {
         )}
 
         {tracking.feed && (
-          <Section emoji="🍚" title={`사료/식사량 (${settings.feedUnit === "bowl" ? "그릇" : "g"})`}>
+          <Section emoji="🍚" title={`식사 (${settings.feedUnit === "bowl" ? "그릇" : "g"})`}>
             <ChipGroup
               options={feedOptions}
               selected={feedAmountLabel}
