@@ -95,12 +95,17 @@ export default function OnboardingCatRegisterScreen() {
               </Pressable>
             )}
 
-            <Pressable style={styles.photoCircle} onPress={() => pickPhoto(cat.id)}>
-              {cat.photoUri ? (
-                <Image source={{ uri: cat.photoUri }} style={styles.photoImage} />
-              ) : (
-                <Text style={styles.photoPlaceholder}>🐾</Text>
-              )}
+            <Pressable style={styles.photoWrapper} onPress={() => pickPhoto(cat.id)}>
+              <View style={styles.photoCircle}>
+                {cat.photoUri ? (
+                  <Image source={{ uri: cat.photoUri }} style={styles.photoImage} />
+                ) : (
+                  <Text style={styles.photoPlaceholder}>🐾</Text>
+                )}
+              </View>
+              <View style={styles.photoBadge}>
+                <Text style={styles.photoBadgeText}>📷</Text>
+              </View>
             </Pressable>
 
             <TextInput
@@ -165,6 +170,11 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: COLORS.textMuted,
   },
+  photoWrapper: {
+    width: 84,
+    height: 84,
+    marginBottom: 16,
+  },
   photoCircle: {
     width: 84,
     height: 84,
@@ -172,7 +182,6 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.accentTint,
     alignItems: "center",
     justifyContent: "center",
-    marginBottom: 16,
     overflow: "hidden",
   },
   photoImage: {
@@ -181,6 +190,22 @@ const styles = StyleSheet.create({
   },
   photoPlaceholder: {
     fontSize: 32,
+  },
+  photoBadge: {
+    position: "absolute",
+    bottom: -2,
+    right: -2,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: COLORS.accent,
+    borderWidth: 2,
+    borderColor: COLORS.cardBackground,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  photoBadgeText: {
+    fontSize: 13,
   },
   nameInput: {
     width: "100%",

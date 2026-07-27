@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Image, Pressable, StyleSheet, Text, View } from "react-native";
 import { useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -26,14 +26,14 @@ export default function OnboardingHouseholdScreen() {
 
       <View style={styles.cardList}>
         <ChoiceCard
-          emoji="🐱"
+          icon={require("../../assets/icons/household-single.png")}
           label="외동묘"
           description="고양이를 한 마리 키우고 있어요"
           selected={selected === "single"}
           onPress={() => setSelected("single")}
         />
         <ChoiceCard
-          emoji="🐈‍⬛"
+          icon={require("../../assets/icons/household-multi.png")}
           label="다묘"
           description="고양이를 여러 마리 키우고 있어요"
           selected={selected === "multi"}
@@ -47,13 +47,13 @@ export default function OnboardingHouseholdScreen() {
 }
 
 function ChoiceCard({
-  emoji,
+  icon,
   label,
   description,
   selected,
   onPress,
 }: {
-  emoji: string;
+  icon: number;
   label: string;
   description: string;
   selected: boolean;
@@ -61,7 +61,7 @@ function ChoiceCard({
 }) {
   return (
     <Pressable style={[styles.card, selected && styles.cardSelected]} onPress={onPress}>
-      <Text style={styles.cardEmoji}>{emoji}</Text>
+      <Image source={icon} style={styles.cardIcon} />
       <Text style={[styles.cardLabel, selected && styles.cardLabelSelected]}>{label}</Text>
       <Text style={styles.cardDescription}>{description}</Text>
     </Pressable>
@@ -90,9 +90,11 @@ const styles = StyleSheet.create({
     borderColor: COLORS.accent,
     backgroundColor: COLORS.accentTint,
   },
-  cardEmoji: {
-    fontSize: 40,
+  cardIcon: {
+    width: 72,
+    height: 72,
     marginBottom: 12,
+    resizeMode: "contain",
   },
   cardLabel: {
     fontSize: 20,

@@ -102,12 +102,17 @@ export default function SettingsScreen() {
         <Text style={styles.sectionLabel}>고양이 정보</Text>
         {cats.map((cat) => (
           <View key={cat.id} style={styles.catCard}>
-            <Pressable style={styles.photoCircle} onPress={() => pickPhoto(cat.id)}>
-              {cat.photoUri ? (
-                <Image source={{ uri: cat.photoUri }} style={styles.photoImage} />
-              ) : (
-                <Text style={styles.photoPlaceholder}>🐾</Text>
-              )}
+            <Pressable style={styles.photoWrapper} onPress={() => pickPhoto(cat.id)}>
+              <View style={styles.photoCircle}>
+                {cat.photoUri ? (
+                  <Image source={{ uri: cat.photoUri }} style={styles.photoImage} />
+                ) : (
+                  <Text style={styles.photoPlaceholder}>🐾</Text>
+                )}
+              </View>
+              <View style={styles.photoBadge}>
+                <Text style={styles.photoBadgeText}>📷</Text>
+              </View>
             </Pressable>
 
             <TextInput
@@ -203,6 +208,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 4,
   },
+  photoWrapper: {
+    width: 72,
+    height: 72,
+    marginBottom: 12,
+  },
   photoCircle: {
     width: 72,
     height: 72,
@@ -210,7 +220,6 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.accentTint,
     alignItems: "center",
     justifyContent: "center",
-    marginBottom: 12,
     overflow: "hidden",
   },
   photoImage: {
@@ -219,6 +228,22 @@ const styles = StyleSheet.create({
   },
   photoPlaceholder: {
     fontSize: 28,
+  },
+  photoBadge: {
+    position: "absolute",
+    bottom: -2,
+    right: -2,
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: COLORS.accent,
+    borderWidth: 2,
+    borderColor: COLORS.cardBackground,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  photoBadgeText: {
+    fontSize: 11,
   },
   nameInput: {
     width: "100%",

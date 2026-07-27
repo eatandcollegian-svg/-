@@ -12,7 +12,7 @@ import type { FeedUnit, TrackingItems } from "../../lib/types";
 const TRACKING_OPTIONS: { key: keyof TrackingItems; emoji: string; label: string }[] = [
   { key: "poop", emoji: "💩", label: "응가" },
   { key: "litterBox", emoji: "🪨", label: "감자" },
-  { key: "feed", emoji: "🍚", label: "식사" },
+  { key: "feed", emoji: "🍚", label: "사료" },
   { key: "water", emoji: "💧", label: "음수량" },
   { key: "snack", emoji: "🍖", label: "간식" },
   { key: "vomit", emoji: "🤮", label: "구토" },
@@ -68,7 +68,7 @@ export default function OnboardingTrackingItemsScreen() {
 
         {trackingItems.feed && (
           <View style={styles.feedUnitSection}>
-            <Text style={styles.feedUnitLabel}>식사 기록 단위</Text>
+            <Text style={styles.feedUnitLabel}>사료 기록 단위</Text>
             <View style={styles.feedUnitOptions}>
               <FeedUnitChip
                 label="그릇 단위"

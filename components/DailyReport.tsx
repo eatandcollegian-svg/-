@@ -31,7 +31,7 @@ export default function DailyReport({
   }
   if (record.feed) {
     const unitLabel = record.feed.unit === "bowl" ? "그릇" : "g";
-    cards.push({ emoji: "🍚", title: "식사", value: `${record.feed.amount}${unitLabel}` });
+    cards.push({ emoji: "🍚", title: "사료", value: `${record.feed.amount}${unitLabel}` });
   }
   if (record.water) {
     cards.push({ emoji: "💧", title: "음수량", value: record.water });

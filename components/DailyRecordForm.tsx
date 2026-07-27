@@ -9,7 +9,7 @@ import type { AppSettings, DailyRecord, PoopCondition, Snack, VomitType, WaterAm
 const POOP_CONDITIONS: PoopCondition[] = ["좋음", "묽음", "설사", "변비"];
 const WATER_AMOUNTS: WaterAmount[] = ["적게", "보통", "많이"];
 const VOMIT_TYPES: VomitType[] = ["없음", "사료", "털", "노란물", "기타"];
-const GRAM_LABELS = ["0", "20", "40", "60", "80", "100", "120"];
+const BOWL_LABELS = ["1그릇", "2그릇", "3그릇", "4그릇", "5그릇"];
 
 export default function DailyRecordForm({
   catName,
@@ -34,7 +34,7 @@ export default function DailyRecordForm({
   const [addingSnack, setAddingSnack] = useState(false);
 
   const tracking = settings.trackingItems;
-  const feedAmountLabel = record.feed ? String(record.feed.amount) : null;
+  const feedBowlLabel = record.feed?.unit === "bowl" ? `${record.feed.amount}그릇` : null;
 
   const toggleSnack = (snackId: string) => {
     onChangeRecord((prev) => {
@@ -95,24 +95,29 @@ export default function DailyRecordForm({
       )}
 
       {tracking.feed && (
-        <Section emoji="🍚" title={`식사 (${settings.feedUnit === "bowl" ? "그릇" : "g"})`}>
+        <Section emoji="🍚" title={`사료 (${settings.feedUnit === "bowl" ? "그릇" : "g"})`}>
           {settings.feedUnit === "bowl" ? (
-            <Stepper
-              value={record.feed?.amount ?? 0}
-              step={0.5}
-              max={Infinity}
-              onChange={(amount) =>
-                onChangeRecord((prev) => ({ ...prev, feed: { unit: "bowl", amount } }))
-              }
-            />
-          ) : (
             <ChipGroup
-              options={GRAM_LABELS}
-              selected={feedAmountLabel}
+              options={BOWL_LABELS}
+              selected={feedBowlLabel}
               onSelect={(label) =>
                 onChangeRecord((prev) => ({
                   ...prev,
-                  feed: { unit: settings.feedUnit, amount: Number(label) },
+                  feed: { unit: "bowl", amount: Number(label.replace("그릇", "")) },
+                }))
+              }
+            />
+          ) : (
+            <TextInput
+              style={styles.weightInput}
+              placeholder="0"
+              placeholderTextColor={COLORS.textFaint}
+              keyboardType="number-pad"
+              value={record.feed?.unit === "gram" ? String(record.feed.amount) : ""}
+              onChangeText={(text) =>
+                onChangeRecord((prev) => ({
+                  ...prev,
+                  feed: text ? { unit: "gram", amount: Number(text) } : undefined,
                 }))
               }
             />
