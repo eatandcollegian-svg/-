@@ -9,9 +9,18 @@ import DailyReport from "../components/DailyReport";
 import PrimaryButton from "../components/PrimaryButton";
 import { daysSinceBirth, formatDisplayDate, todayString } from "../lib/date";
 import { generateId } from "../lib/id";
-import { getCats, getRecords, getSettings, getSnacks, saveRecords, saveSnacks } from "../lib/storage";
+import {
+  getCats,
+  getMedicines,
+  getRecords,
+  getSettings,
+  getSnacks,
+  saveMedicines,
+  saveRecords,
+  saveSnacks,
+} from "../lib/storage";
 import { COLORS, FONTS } from "../lib/theme";
-import type { AppSettings, Cat, DailyRecord, Snack } from "../lib/types";
+import type { AppSettings, Cat, DailyRecord, Medicine, Snack } from "../lib/types";
 
 const MIN_MONTH = new Date(2026, 6, 1);
 const MAX_MONTH = new Date(2029, 11, 1);
@@ -39,6 +48,7 @@ export default function HomeScreen() {
   const [cats, setCats] = useState<Cat[]>([]);
   const [settings, setSettings] = useState<AppSettings | null>(null);
   const [snacks, setSnacks] = useState<Snack[]>([]);
+  const [medicines, setMedicines] = useState<Medicine[]>([]);
   const [allRecords, setAllRecords] = useState<DailyRecord[]>([]);
   const [selectedCatId, setSelectedCatId] = useState<string | null>(null);
   const [viewMonth, setViewMonth] = useState(() => clampMonth(new Date()));
@@ -53,16 +63,18 @@ export default function HomeScreen() {
     useCallback(() => {
       let cancelled = false;
       (async () => {
-        const [loadedCats, loadedSettings, loadedSnacks, loadedRecords] = await Promise.all([
+        const [loadedCats, loadedSettings, loadedSnacks, loadedMedicines, loadedRecords] = await Promise.all([
           getCats(),
           getSettings(),
           getSnacks(),
+          getMedicines(),
           getRecords(),
         ]);
         if (cancelled) return;
         setCats(loadedCats);
         setSettings(loadedSettings);
         setSnacks(loadedSnacks);
+        setMedicines(loadedMedicines);
         setAllRecords(loadedRecords);
         setSelectedCatId((prev) =>
           prev && loadedCats.some((cat) => cat.id === prev) ? prev : (loadedCats[0]?.id ?? null)
@@ -123,6 +135,14 @@ export default function HomeScreen() {
     return newSnack;
   };
 
+  const handleCreateMedicine = async (name: string): Promise<Medicine> => {
+    const newMedicine: Medicine = { id: generateId(), name };
+    const updated = [...medicines, newMedicine];
+    await saveMedicines(updated);
+    setMedicines(updated);
+    return newMedicine;
+  };
+
   if (selectedDate && record) {
     const dateLabel = formatDisplayDate(selectedDate);
     const hasData = markedDates.has(selectedDate);
@@ -153,6 +173,8 @@ export default function HomeScreen() {
               settings={settings}
               snacks={snacks}
               onCreateSnack={handleCreateSnack}
+              medicines={medicines}
+              onCreateMedicine={handleCreateMedicine}
               savedMessage={savedMessage}
             />
           </ScrollView>
@@ -198,6 +220,7 @@ export default function HomeScreen() {
             dateLabel={dateLabel}
             record={record}
             snacks={snacks}
+            medicines={medicines}
           />
         </ScrollView>
 

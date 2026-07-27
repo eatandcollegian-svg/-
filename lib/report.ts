@@ -1,4 +1,4 @@
-import type { DailyRecord, PoopCondition, Snack, VomitType, WaterAmount } from "./types";
+import type { DailyRecord, Medicine, PoopCondition, Snack, VomitType, WaterAmount } from "./types";
 
 const POOP_CONDITION_ADJECTIVE: Record<PoopCondition, string> = {
   좋음: "좋은",
@@ -62,13 +62,17 @@ function vomitClause(record: DailyRecord): string | null {
 
 function playClause(record: DailyRecord): string | null {
   if (!record.play) return null;
-  if (record.play.count === 0) return "놀아주지는 못했";
-  return `${record.play.count * 10}분 놀아줬`;
+  if (record.play.minutes === 0) return "놀아주지는 못했";
+  return `${record.play.minutes}분 놀아줬`;
 }
 
-function medicineClause(record: DailyRecord): string | null {
-  if (!record.medicine) return null;
-  return record.medicine.done ? "약도 잘 먹었" : "약은 먹지 않았";
+function medicineClause(record: DailyRecord, medicines: Medicine[]): string | null {
+  if (!record.medicineIds || record.medicineIds.length === 0) return null;
+  const names = record.medicineIds
+    .map((id) => medicines.find((medicine) => medicine.id === id)?.name)
+    .filter((name): name is string => Boolean(name));
+  if (names.length === 0) return null;
+  return `${names.join(", ")}도 먹였`;
 }
 
 function weightClause(record: DailyRecord): string | null {
@@ -82,12 +86,17 @@ function joinClauses(clauses: (string | null)[]): string | null {
   return `${filtered.join("고 ")}어요.`;
 }
 
-export function buildDailySummary(record: DailyRecord, catName: string, snacks: Snack[]): string[] {
+export function buildDailySummary(
+  record: DailyRecord,
+  catName: string,
+  snacks: Snack[],
+  medicines: Medicine[]
+): string[] {
   const categorySentences = [
     joinClauses([poopClause(record), litterBoxClause(record)]),
     joinClauses([feedClause(record), waterClause(record), snackClause(record, snacks)]),
     joinClauses([playClause(record)]),
-    joinClauses([vomitClause(record), medicineClause(record), weightClause(record)]),
+    joinClauses([vomitClause(record), medicineClause(record, medicines), weightClause(record)]),
   ].filter((sentence): sentence is string => Boolean(sentence));
 
   const sentences: string[] = categorySentences.map((sentence, index) =>

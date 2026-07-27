@@ -1,15 +1,24 @@
-import { useState } from "react";
-import { Pressable, StyleSheet, Switch, Text, TextInput, View } from "react-native";
+import { StyleSheet, Text, TextInput, View } from "react-native";
 
 import ChipGroup from "./ChipGroup";
+import ChipMultiPicker from "./ChipMultiPicker";
 import Stepper from "./Stepper";
 import { COLORS, FONTS } from "../lib/theme";
-import type { AppSettings, DailyRecord, PoopCondition, Snack, VomitType, WaterAmount } from "../lib/types";
+import type {
+  AppSettings,
+  DailyRecord,
+  Medicine,
+  PoopCondition,
+  Snack,
+  VomitType,
+  WaterAmount,
+} from "../lib/types";
 
 const POOP_CONDITIONS: PoopCondition[] = ["좋음", "묽음", "설사", "변비"];
 const WATER_AMOUNTS: WaterAmount[] = ["적게", "보통", "많이"];
 const VOMIT_TYPES: VomitType[] = ["없음", "사료", "털", "노란물", "기타"];
 const BOWL_LABELS = ["1그릇", "2그릇", "3그릇", "4그릇", "5그릇"];
+const GRAM_LABELS = ["0", "20", "40", "60", "80", "100", "120"];
 
 export default function DailyRecordForm({
   catName,
@@ -19,6 +28,8 @@ export default function DailyRecordForm({
   settings,
   snacks,
   onCreateSnack,
+  medicines,
+  onCreateMedicine,
   savedMessage,
 }: {
   catName: string;
@@ -28,11 +39,10 @@ export default function DailyRecordForm({
   settings: AppSettings;
   snacks: Snack[];
   onCreateSnack: (name: string) => Promise<Snack>;
+  medicines: Medicine[];
+  onCreateMedicine: (name: string) => Promise<Medicine>;
   savedMessage: boolean;
 }) {
-  const [newSnackName, setNewSnackName] = useState("");
-  const [addingSnack, setAddingSnack] = useState(false);
-
   const tracking = settings.trackingItems;
   const feedBowlLabel = record.feed?.unit === "bowl" ? `${record.feed.amount}그릇` : null;
 
@@ -46,13 +56,14 @@ export default function DailyRecordForm({
     });
   };
 
-  const handleAddSnack = async () => {
-    const name = newSnackName.trim();
-    if (!name) return;
-    const newSnack = await onCreateSnack(name);
-    setNewSnackName("");
-    setAddingSnack(false);
-    toggleSnack(newSnack.id);
+  const toggleMedicine = (medicineId: string) => {
+    onChangeRecord((prev) => {
+      const current = prev.medicineIds ?? [];
+      const next = current.includes(medicineId)
+        ? current.filter((id) => id !== medicineId)
+        : [...current, medicineId];
+      return { ...prev, medicineIds: next };
+    });
   };
 
   return (
@@ -137,43 +148,14 @@ export default function DailyRecordForm({
 
       {tracking.snack && (
         <Section emoji="🍖" title="간식">
-          <View style={styles.snackRow}>
-            {snacks.map((snack) => {
-              const isSelected = (record.snacks ?? []).includes(snack.id);
-              return (
-                <Pressable
-                  key={snack.id}
-                  style={[styles.chip, isSelected && styles.chipSelected]}
-                  onPress={() => toggleSnack(snack.id)}
-                >
-                  <Text style={[styles.chipLabel, isSelected && styles.chipLabelSelected]}>
-                    {snack.name}
-                  </Text>
-                </Pressable>
-              );
-            })}
-
-            {addingSnack ? (
-              <View style={styles.newSnackInputRow}>
-                <TextInput
-                  style={styles.newSnackInput}
-                  placeholder="간식 이름"
-                  placeholderTextColor={COLORS.textFaint}
-                  value={newSnackName}
-                  onChangeText={setNewSnackName}
-                  onSubmitEditing={handleAddSnack}
-                  autoFocus
-                />
-                <Pressable style={styles.newSnackConfirm} onPress={handleAddSnack}>
-                  <Text style={styles.newSnackConfirmText}>추가</Text>
-                </Pressable>
-              </View>
-            ) : (
-              <Pressable style={styles.chip} onPress={() => setAddingSnack(true)}>
-                <Text style={styles.chipLabel}>+ 간식 추가</Text>
-              </Pressable>
-            )}
-          </View>
+          <ChipMultiPicker
+            options={snacks}
+            selectedIds={record.snacks ?? []}
+            onToggle={toggleSnack}
+            onCreate={onCreateSnack}
+            addLabel="+ 간식 추가"
+            inputPlaceholder="간식 이름"
+          />
         </Section>
       )}
 
@@ -203,26 +185,33 @@ export default function DailyRecordForm({
       )}
 
       {tracking.play && (
-        <Section emoji="🧶" title="놀이 (10분 단위)">
-          <Stepper
-            value={record.play?.count ?? 0}
-            max={Infinity}
-            onChange={(count) => onChangeRecord((prev) => ({ ...prev, play: { count } }))}
+        <Section emoji="🧶" title="놀이 (분)">
+          <TextInput
+            style={styles.weightInput}
+            placeholder="0"
+            placeholderTextColor={COLORS.textFaint}
+            keyboardType="number-pad"
+            value={record.play ? String(record.play.minutes) : ""}
+            onChangeText={(text) =>
+              onChangeRecord((prev) => ({
+                ...prev,
+                play: text ? { minutes: Number(text) } : undefined,
+              }))
+            }
           />
         </Section>
       )}
 
       {tracking.medicine && (
         <Section emoji="💊" title="투약">
-          <View style={styles.medicineRow}>
-            <Text style={styles.medicineLabel}>오늘 약을 먹였어요</Text>
-            <Switch
-              value={record.medicine?.done ?? false}
-              onValueChange={(done) => onChangeRecord((prev) => ({ ...prev, medicine: { done } }))}
-              trackColor={{ false: COLORS.cardBorder, true: COLORS.accent }}
-              thumbColor="#FFFFFF"
-            />
-          </View>
+          <ChipMultiPicker
+            options={medicines}
+            selectedIds={record.medicineIds ?? []}
+            onToggle={toggleMedicine}
+            onCreate={onCreateMedicine}
+            addLabel="+ 약 추가"
+            inputPlaceholder="약 이름"
+          />
         </Section>
       )}
 
@@ -296,58 +285,6 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.bold,
     color: COLORS.textStrong,
   },
-  snackRow: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 8,
-  },
-  chip: {
-    borderRadius: 14,
-    borderWidth: 2,
-    borderColor: COLORS.cardBorder,
-    backgroundColor: COLORS.background,
-    paddingVertical: 8,
-    paddingHorizontal: 14,
-  },
-  chipSelected: {
-    borderColor: COLORS.accent,
-    backgroundColor: COLORS.accentTint,
-  },
-  chipLabel: {
-    fontSize: 14,
-    fontFamily: FONTS.semiBold,
-    color: COLORS.textStrong,
-  },
-  chipLabelSelected: {
-    color: COLORS.accent,
-  },
-  newSnackInputRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-  },
-  newSnackInput: {
-    borderRadius: 14,
-    borderWidth: 2,
-    borderColor: COLORS.cardBorder,
-    paddingVertical: 8,
-    paddingHorizontal: 14,
-    fontSize: 14,
-    fontFamily: FONTS.regular,
-    color: COLORS.textStrong,
-    minWidth: 100,
-  },
-  newSnackConfirm: {
-    borderRadius: 14,
-    backgroundColor: COLORS.accent,
-    paddingVertical: 8,
-    paddingHorizontal: 14,
-  },
-  newSnackConfirmText: {
-    fontSize: 14,
-    fontFamily: FONTS.bold,
-    color: "#FFFFFF",
-  },
   vomitNoteInput: {
     borderRadius: 14,
     borderWidth: 2,
@@ -356,16 +293,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     fontSize: 14,
     fontFamily: FONTS.regular,
-    color: COLORS.textStrong,
-  },
-  medicineRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
-  medicineLabel: {
-    fontSize: 15,
-    fontFamily: FONTS.semiBold,
     color: COLORS.textStrong,
   },
   weightInput: {

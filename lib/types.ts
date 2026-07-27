@@ -8,9 +8,6 @@ export type FeedUnit = "bowl" | "gram";
 
 export type HouseholdType = "single" | "multi";
 
-export const BOWL_FEED_AMOUNTS = [0, 0.5, 1, 1.5, 2] as const;
-export const GRAM_FEED_AMOUNTS = [0, 20, 40, 60, 80, 100, 120] as const;
-
 export interface Cat {
   id: string;
   name: string;
@@ -20,6 +17,11 @@ export interface Cat {
 }
 
 export interface Snack {
+  id: string;
+  name: string;
+}
+
+export interface Medicine {
   id: string;
   name: string;
 }
@@ -38,12 +40,8 @@ export interface FeedRecord {
   amount: number;
 }
 
-export interface MedicineRecord {
-  done: boolean;
-}
-
 export interface PlayRecord {
-  count: number;
+  minutes: number;
 }
 
 export interface DailyRecord {
@@ -57,7 +55,7 @@ export interface DailyRecord {
   snacks?: string[];
   vomit?: VomitType;
   vomitNote?: string;
-  medicine?: MedicineRecord;
+  medicineIds?: string[];
   play?: PlayRecord;
   weight?: number;
   note?: string;

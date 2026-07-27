@@ -2,20 +2,22 @@ import { StyleSheet, Text, View } from "react-native";
 
 import { buildDailySummary } from "../lib/report";
 import { COLORS, FONTS } from "../lib/theme";
-import type { DailyRecord, Snack } from "../lib/types";
+import type { DailyRecord, Medicine, Snack } from "../lib/types";
 
 export default function DailyReport({
   catName,
   dateLabel,
   record,
   snacks,
+  medicines,
 }: {
   catName: string;
   dateLabel: string;
   record: DailyRecord;
   snacks: Snack[];
+  medicines: Medicine[];
 }) {
-  const summary = buildDailySummary(record, catName, snacks);
+  const summary = buildDailySummary(record, catName, snacks, medicines);
 
   const cards: { emoji: string; title: string; value: string }[] = [];
 
@@ -48,11 +50,16 @@ export default function DailyReport({
     const detail = record.vomit === "기타" && record.vomitNote?.trim() ? ` (${record.vomitNote.trim()})` : "";
     cards.push({ emoji: "🤮", title: "구토", value: `${record.vomit}${detail}` });
   }
-  if (record.medicine) {
-    cards.push({ emoji: "💊", title: "투약", value: record.medicine.done ? "먹임" : "먹이지 않음" });
+  if (record.medicineIds && record.medicineIds.length > 0) {
+    const names = record.medicineIds
+      .map((id) => medicines.find((medicine) => medicine.id === id)?.name)
+      .filter((name): name is string => Boolean(name));
+    if (names.length > 0) {
+      cards.push({ emoji: "💊", title: "투약", value: names.join(", ") });
+    }
   }
   if (record.play) {
-    cards.push({ emoji: "🧶", title: "놀이", value: `${record.play.count}회 (${record.play.count * 10}분)` });
+    cards.push({ emoji: "🧶", title: "놀이", value: `${record.play.minutes}분` });
   }
   if (record.weight !== undefined) {
     cards.push({ emoji: "⚖️", title: "체중", value: `${record.weight}kg` });

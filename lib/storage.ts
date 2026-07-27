@@ -1,12 +1,13 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-import type { AppSettings, Cat, DailyRecord, Snack } from "./types";
+import type { AppSettings, Cat, DailyRecord, Medicine, Snack } from "./types";
 
 const KEYS = {
   settings: "nyanglog:settings",
   cats: "nyanglog:cats",
   records: "nyanglog:records",
   snacks: "nyanglog:snacks",
+  medicines: "nyanglog:medicines",
 } as const;
 
 const DEFAULT_SETTINGS: AppSettings = {
@@ -66,6 +67,15 @@ export async function getSnacks(): Promise<Snack[]> {
 
 export async function saveSnacks(snacks: Snack[]): Promise<void> {
   await AsyncStorage.setItem(KEYS.snacks, JSON.stringify(snacks));
+}
+
+export async function getMedicines(): Promise<Medicine[]> {
+  const raw = await AsyncStorage.getItem(KEYS.medicines);
+  return raw ? JSON.parse(raw) : [];
+}
+
+export async function saveMedicines(medicines: Medicine[]): Promise<void> {
+  await AsyncStorage.setItem(KEYS.medicines, JSON.stringify(medicines));
 }
 
 export async function resetAllData(): Promise<void> {

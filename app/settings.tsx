@@ -5,27 +5,57 @@ import * as ImagePicker from "expo-image-picker";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import BirthDateInput from "../components/BirthDateInput";
+import NamedListEditor from "../components/NamedListEditor";
 import PrimaryButton from "../components/PrimaryButton";
+import TrackingItemsEditor from "../components/TrackingItemsEditor";
 import { generateId } from "../lib/id";
-import { getCats, getSnacks, saveCats, saveSnacks } from "../lib/storage";
+import {
+  getCats,
+  getMedicines,
+  getSettings,
+  getSnacks,
+  saveCats,
+  saveMedicines,
+  saveSettings,
+  saveSnacks,
+} from "../lib/storage";
 import { COLORS, FONTS } from "../lib/theme";
-import type { Cat, Snack } from "../lib/types";
+import type { AppSettings, Cat, FeedUnit, Medicine, Snack, TrackingItems } from "../lib/types";
 
 export default function SettingsScreen() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [cats, setCats] = useState<Cat[]>([]);
   const [snacks, setSnacks] = useState<Snack[]>([]);
+  const [medicines, setMedicines] = useState<Medicine[]>([]);
+  const [settings, setSettings] = useState<AppSettings | null>(null);
   const [savedMessage, setSavedMessage] = useState(false);
 
   useEffect(() => {
     (async () => {
-      const [loadedCats, loadedSnacks] = await Promise.all([getCats(), getSnacks()]);
+      const [loadedCats, loadedSnacks, loadedMedicines, loadedSettings] = await Promise.all([
+        getCats(),
+        getSnacks(),
+        getMedicines(),
+        getSettings(),
+      ]);
       setCats(loadedCats);
       setSnacks(loadedSnacks);
+      setMedicines(loadedMedicines);
+      setSettings(loadedSettings);
       setLoading(false);
     })();
   }, []);
+
+  const toggleTrackingItem = (key: keyof TrackingItems) => {
+    setSettings((prev) =>
+      prev ? { ...prev, trackingItems: { ...prev.trackingItems, [key]: !prev.trackingItems[key] } } : prev
+    );
+  };
+
+  const changeFeedUnit = (feedUnit: FeedUnit) => {
+    setSettings((prev) => (prev ? { ...prev, feedUnit } : prev));
+  };
 
   const canSave = cats.every((cat) => cat.name.trim().length > 0);
 
@@ -69,22 +99,40 @@ export default function SettingsScreen() {
     setSnacks((prev) => prev.filter((snack) => snack.id !== id));
   };
 
+  const updateMedicineName = (id: string, name: string) => {
+    setMedicines((prev) => prev.map((medicine) => (medicine.id === id ? { ...medicine, name } : medicine)));
+  };
+
+  const addMedicine = () => {
+    setMedicines((prev) => [...prev, { id: generateId(), name: "" }]);
+  };
+
+  const removeMedicine = (id: string) => {
+    setMedicines((prev) => prev.filter((medicine) => medicine.id !== id));
+  };
+
   const handleSave = async () => {
-    if (!canSave) return;
+    if (!canSave || !settings) return;
     const trimmedCats = cats.map((cat) => ({ ...cat, name: cat.name.trim() }));
     const trimmedSnacks = snacks
       .map((snack) => ({ ...snack, name: snack.name.trim() }))
       .filter((snack) => snack.name.length > 0);
+    const trimmedMedicines = medicines
+      .map((medicine) => ({ ...medicine, name: medicine.name.trim() }))
+      .filter((medicine) => medicine.name.length > 0);
 
     await saveCats(trimmedCats);
     await saveSnacks(trimmedSnacks);
+    await saveMedicines(trimmedMedicines);
+    await saveSettings(settings);
     setCats(trimmedCats);
     setSnacks(trimmedSnacks);
+    setMedicines(trimmedMedicines);
     setSavedMessage(true);
     setTimeout(() => setSavedMessage(false), 1500);
   };
 
-  if (loading) {
+  if (loading || !settings) {
     return <SafeAreaView style={styles.container} />;
   }
 
@@ -131,27 +179,33 @@ export default function SettingsScreen() {
           </View>
         ))}
 
-        <Text style={styles.sectionLabel}>간식 관리</Text>
-        <View style={styles.snackList}>
-          {snacks.map((snack) => (
-            <View key={snack.id} style={styles.snackRow}>
-              <TextInput
-                style={styles.snackInput}
-                placeholder="간식 이름"
-                placeholderTextColor={COLORS.textFaint}
-                value={snack.name}
-                onChangeText={(text) => updateSnackName(snack.id, text)}
-              />
-              <Pressable style={styles.snackDeleteButton} onPress={() => removeSnack(snack.id)}>
-                <Text style={styles.snackDeleteButtonText}>✕</Text>
-              </Pressable>
-            </View>
-          ))}
+        <Text style={styles.sectionLabel}>기록 항목</Text>
+        <TrackingItemsEditor
+          trackingItems={settings.trackingItems}
+          feedUnit={settings.feedUnit}
+          onToggleItem={toggleTrackingItem}
+          onChangeFeedUnit={changeFeedUnit}
+        />
 
-          <Pressable style={styles.addSnackButton} onPress={addSnack}>
-            <Text style={styles.addSnackButtonText}>+ 간식 추가</Text>
-          </Pressable>
-        </View>
+        <Text style={styles.sectionLabel}>간식 관리</Text>
+        <NamedListEditor
+          items={snacks}
+          onUpdateName={updateSnackName}
+          onAdd={addSnack}
+          onRemove={removeSnack}
+          addLabel="+ 간식 추가"
+          itemPlaceholder="간식 이름"
+        />
+
+        <Text style={styles.sectionLabel}>투약 관리</Text>
+        <NamedListEditor
+          items={medicines}
+          onUpdateName={updateMedicineName}
+          onAdd={addMedicine}
+          onRemove={removeMedicine}
+          addLabel="+ 약 추가"
+          itemPlaceholder="약 이름"
+        />
 
         {savedMessage && <Text style={styles.savedMessage}>저장되었어요</Text>}
       </ScrollView>
@@ -263,51 +317,6 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontFamily: FONTS.regular,
     color: COLORS.textMuted,
-  },
-  snackList: {
-    gap: 10,
-  },
-  snackRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-  },
-  snackInput: {
-    flex: 1,
-    borderRadius: 14,
-    borderWidth: 2,
-    borderColor: COLORS.cardBorder,
-    backgroundColor: COLORS.cardBackground,
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-    fontSize: 15,
-    fontFamily: FONTS.regular,
-    color: COLORS.textStrong,
-  },
-  snackDeleteButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: COLORS.background,
-  },
-  snackDeleteButtonText: {
-    fontSize: 14,
-    color: COLORS.textMuted,
-  },
-  addSnackButton: {
-    borderRadius: 16,
-    borderWidth: 2,
-    borderColor: COLORS.cardBorder,
-    borderStyle: "dashed",
-    paddingVertical: 14,
-    alignItems: "center",
-  },
-  addSnackButtonText: {
-    fontSize: 14,
-    fontFamily: FONTS.semiBold,
-    color: COLORS.accent,
   },
   savedMessage: {
     textAlign: "center",
