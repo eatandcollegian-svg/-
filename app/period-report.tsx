@@ -3,19 +3,12 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import DailyReport from "../components/DailyReport";
-import { formatDisplayDate, todayString } from "../lib/date";
-import { generateId } from "../lib/id";
 import { buildPeriodStats } from "../lib/periodStats";
-import { getCats, getMedicines, getRecords, getSettings, getSnacks } from "../lib/storage";
+import { getCats, getRecords, getSettings } from "../lib/storage";
 import { COLORS, FONTS } from "../lib/theme";
-import type { AppSettings, Cat, DailyRecord, FeedUnit, Medicine, Snack } from "../lib/types";
+import type { AppSettings, Cat, DailyRecord, FeedUnit } from "../lib/types";
 
-type Period = "today" | "week" | "month";
-
-function emptyRecord(catId: string, date: string): DailyRecord {
-  return { id: generateId(), catId, date, snacks: [], updatedAt: new Date().toISOString() };
-}
+type Period = "week" | "month";
 
 export default function PeriodReportScreen() {
   const router = useRouter();
@@ -23,24 +16,18 @@ export default function PeriodReportScreen() {
   const [loading, setLoading] = useState(true);
   const [cats, setCats] = useState<Cat[]>([]);
   const [records, setRecords] = useState<DailyRecord[]>([]);
-  const [snacks, setSnacks] = useState<Snack[]>([]);
-  const [medicines, setMedicines] = useState<Medicine[]>([]);
   const [settings, setSettings] = useState<AppSettings | null>(null);
-  const [period, setPeriod] = useState<Period>("today");
+  const [period, setPeriod] = useState<Period>("week");
 
   useEffect(() => {
     (async () => {
-      const [loadedCats, loadedRecords, loadedSnacks, loadedMedicines, loadedSettings] = await Promise.all([
+      const [loadedCats, loadedRecords, loadedSettings] = await Promise.all([
         getCats(),
         getRecords(),
-        getSnacks(),
-        getMedicines(),
         getSettings(),
       ]);
       setCats(loadedCats);
       setRecords(loadedRecords);
-      setSnacks(loadedSnacks);
-      setMedicines(loadedMedicines);
       setSettings(loadedSettings);
       setLoading(false);
     })();
@@ -51,7 +38,6 @@ export default function PeriodReportScreen() {
   }
 
   const cat = cats.find((c) => c.id === catId);
-  const today = todayString();
 
   return (
     <SafeAreaView style={styles.container}>
@@ -68,27 +54,14 @@ export default function PeriodReportScreen() {
           <Text style={styles.title}>{cat.name}의 리포트</Text>
 
           <View style={styles.segmentRow}>
-            <SegmentButton label="오늘" selected={period === "today"} onPress={() => setPeriod("today")} />
             <SegmentButton label="7일" selected={period === "week"} onPress={() => setPeriod("week")} />
             <SegmentButton label="30일" selected={period === "month"} onPress={() => setPeriod("month")} />
           </View>
 
-          {period === "today" ? (
-            <DailyReport
-              catName={cat.name}
-              dateLabel={formatDisplayDate(today)}
-              record={
-                records.find((r) => r.catId === cat.id && r.date === today) ?? emptyRecord(cat.id, today)
-              }
-              snacks={snacks}
-              medicines={medicines}
-            />
-          ) : (
-            <PeriodStatsView
-              stats={buildPeriodStats(records, cat.id, period === "week" ? 7 : 30, new Date())}
-              feedUnit={settings.feedUnit}
-            />
-          )}
+          <PeriodStatsView
+            stats={buildPeriodStats(records, cat.id, period === "week" ? 7 : 30, new Date())}
+            feedUnit={settings.feedUnit}
+          />
         </ScrollView>
       )}
     </SafeAreaView>
@@ -124,18 +97,25 @@ function PeriodStatsView({
     <>
       <View style={styles.summaryBox}>
         <Text style={styles.summaryText}>
-          최근 {stats.totalDays}일 중 {stats.recordedDays}일 기록했어요.
+          최근 {stats.totalDays}일 중 {stats.recordedDays}일 기록했어요. 아래 수치는 기록한 날 기준
+          하루 평균이에요.
         </Text>
       </View>
 
-      <StatCard emoji="💩" title="배변" value={`${stats.poopCount}회`} />
+      {stats.poopAverage !== null && (
+        <StatCard emoji="💩" title="배변" value={`${stats.poopAverage.toFixed(1)}회`} />
+      )}
       <StatCard emoji="🤮" title="구토" value={`${stats.vomitCount}회`} />
       {stats.feedAverage !== null && (
-        <StatCard emoji="🍚" title="사료 평균" value={`${stats.feedAverage.toFixed(1)}${feedUnitLabel}`} />
+        <StatCard emoji="🍚" title="사료" value={`${stats.feedAverage.toFixed(1)}${feedUnitLabel}`} />
       )}
-      <StatCard emoji="🍖" title="간식" value={`${stats.snackCount}회`} />
+      {stats.snackAverage !== null && (
+        <StatCard emoji="🍖" title="간식" value={`${stats.snackAverage.toFixed(1)}회`} />
+      )}
       <StatCard emoji="💊" title="투약" value={`${stats.medicineDays}/${stats.totalDays}일`} />
-      <StatCard emoji="🧶" title="놀이" value={`${stats.playMinutesTotal}분`} />
+      {stats.playAverage !== null && (
+        <StatCard emoji="🧶" title="놀이" value={`${stats.playAverage.toFixed(1)}분`} />
+      )}
     </>
   );
 }

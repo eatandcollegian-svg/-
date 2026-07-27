@@ -5,12 +5,16 @@ import type { DailyRecord } from "./types";
 export interface PeriodStats {
   totalDays: number;
   recordedDays: number;
-  poopCount: number;
+  poopAverage: number | null;
   vomitCount: number;
   feedAverage: number | null;
-  snackCount: number;
+  snackAverage: number | null;
   medicineDays: number;
-  playMinutesTotal: number;
+  playAverage: number | null;
+}
+
+function average(values: number[]): number | null {
+  return values.length > 0 ? values.reduce((sum, value) => sum + value, 0) / values.length : null;
 }
 
 export function buildPeriodStats(
@@ -26,17 +30,16 @@ export function buildPeriodStats(
     (record) => record.catId === catId && record.date >= rangeStart && record.date <= rangeEnd
   );
 
-  const feedAmounts = filtered.filter((record) => record.feed).map((record) => record.feed!.amount);
-
   return {
     totalDays: days,
     recordedDays: filtered.length,
-    poopCount: filtered.reduce((sum, record) => sum + (record.poop?.count ?? 0), 0),
+    poopAverage: average(filtered.filter((record) => record.poop).map((record) => record.poop!.count)),
     vomitCount: filtered.filter((record) => record.vomit && record.vomit !== "없음").length,
-    feedAverage:
-      feedAmounts.length > 0 ? feedAmounts.reduce((sum, amount) => sum + amount, 0) / feedAmounts.length : null,
-    snackCount: filtered.reduce((sum, record) => sum + (record.snacks?.length ?? 0), 0),
+    feedAverage: average(filtered.filter((record) => record.feed).map((record) => record.feed!.amount)),
+    snackAverage: average(
+      filtered.filter((record) => record.snacks !== undefined).map((record) => record.snacks!.length)
+    ),
     medicineDays: filtered.filter((record) => record.medicineIds && record.medicineIds.length > 0).length,
-    playMinutesTotal: filtered.reduce((sum, record) => sum + (record.play?.minutes ?? 0), 0),
+    playAverage: average(filtered.filter((record) => record.play).map((record) => record.play!.minutes)),
   };
 }
