@@ -284,6 +284,15 @@ export default function HomeScreen() {
             {selectedCat.name} 태어난지 {daysSinceBirth(selectedCat.birthDate)}일
           </Text>
         )}
+
+        {selectedCat && (
+          <Pressable
+            style={styles.reportButton}
+            onPress={() => router.push({ pathname: "/period-report", params: { catId: selectedCat.id } })}
+          >
+            <Text style={styles.reportButtonText}>{selectedCat.name}의 리포트</Text>
+          </Pressable>
+        )}
       </ScrollView>
     </SafeAreaView>
   );
@@ -353,6 +362,20 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontFamily: FONTS.semiBold,
     color: COLORS.textMuted,
+  },
+  reportButton: {
+    marginTop: 8,
+    borderRadius: 20,
+    borderWidth: 2,
+    borderColor: COLORS.cardBorder,
+    backgroundColor: COLORS.cardBackground,
+    paddingVertical: 16,
+    alignItems: "center",
+  },
+  reportButtonText: {
+    fontSize: 15,
+    fontFamily: FONTS.bold,
+    color: COLORS.accent,
   },
   catSwitcher: {
     flexDirection: "row",
