@@ -1,6 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-import type { AppSettings, Cat, DailyRecord, Medicine, Snack } from "./types";
+import type { AppSettings, Cat, DailyRecord, Medicine, Reminder, Snack } from "./types";
 
 const KEYS = {
   settings: "nyanglog:settings",
@@ -8,7 +8,13 @@ const KEYS = {
   records: "nyanglog:records",
   snacks: "nyanglog:snacks",
   medicines: "nyanglog:medicines",
+  reminders: "nyanglog:reminders",
 } as const;
+
+const DEFAULT_REMINDERS: Reminder[] = [
+  { id: "reminder-general", category: "general", enabled: false, hour: 20, minute: 0 },
+  { id: "reminder-medicine-default", category: "medicine", enabled: false, hour: 9, minute: 0 },
+];
 
 const DEFAULT_SETTINGS: AppSettings = {
   onboardingCompleted: false,
@@ -76,6 +82,15 @@ export async function getMedicines(): Promise<Medicine[]> {
 
 export async function saveMedicines(medicines: Medicine[]): Promise<void> {
   await AsyncStorage.setItem(KEYS.medicines, JSON.stringify(medicines));
+}
+
+export async function getReminders(): Promise<Reminder[]> {
+  const raw = await AsyncStorage.getItem(KEYS.reminders);
+  return raw ? JSON.parse(raw) : DEFAULT_REMINDERS;
+}
+
+export async function saveReminders(reminders: Reminder[]): Promise<void> {
+  await AsyncStorage.setItem(KEYS.reminders, JSON.stringify(reminders));
 }
 
 export async function resetAllData(): Promise<void> {

@@ -1,9 +1,11 @@
+import { useEffect } from "react";
 import { View } from "react-native";
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useFonts } from "expo-font";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
+import { ensureNotificationChannel } from "../lib/notifications";
 import { COLORS, FONTS } from "../lib/theme";
 
 export default function RootLayout() {
@@ -13,6 +15,10 @@ export default function RootLayout() {
     [FONTS.semiBold]: require("../assets/fonts/Pretendard-SemiBold.ttf"),
     [FONTS.bold]: require("../assets/fonts/Pretendard-Bold.ttf"),
   });
+
+  useEffect(() => {
+    ensureNotificationChannel();
+  }, []);
 
   if (!fontsLoaded) {
     return <View style={{ flex: 1, backgroundColor: COLORS.background }} />;

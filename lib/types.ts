@@ -26,6 +26,16 @@ export interface Medicine {
   name: string;
 }
 
+export type ReminderCategory = "general" | "medicine";
+
+export interface Reminder {
+  id: string;
+  category: ReminderCategory;
+  enabled: boolean;
+  hour: number;
+  minute: number;
+}
+
 export interface PoopRecord {
   count: number;
   condition: PoopCondition;

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Image, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import { Alert, Image, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { useRouter } from "expo-router";
 import * as ImagePicker from "expo-image-picker";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -7,20 +7,26 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import BirthDateInput from "../components/BirthDateInput";
 import NamedListEditor from "../components/NamedListEditor";
 import PrimaryButton from "../components/PrimaryButton";
+import ReminderRow from "../components/ReminderRow";
 import TrackingItemsEditor from "../components/TrackingItemsEditor";
 import { generateId } from "../lib/id";
+import { requestNotificationPermission, syncAllReminderSchedules } from "../lib/notifications";
 import {
   getCats,
   getMedicines,
+  getReminders,
   getSettings,
   getSnacks,
   saveCats,
   saveMedicines,
+  saveReminders,
   saveSettings,
   saveSnacks,
 } from "../lib/storage";
 import { COLORS, FONTS } from "../lib/theme";
-import type { AppSettings, Cat, FeedUnit, Medicine, Snack, TrackingItems } from "../lib/types";
+import type { AppSettings, Cat, FeedUnit, Medicine, Reminder, Snack, TrackingItems } from "../lib/types";
+
+const MAX_MEDICINE_REMINDERS = 5;
 
 export default function SettingsScreen() {
   const router = useRouter();
@@ -28,20 +34,23 @@ export default function SettingsScreen() {
   const [cats, setCats] = useState<Cat[]>([]);
   const [snacks, setSnacks] = useState<Snack[]>([]);
   const [medicines, setMedicines] = useState<Medicine[]>([]);
+  const [reminders, setReminders] = useState<Reminder[]>([]);
   const [settings, setSettings] = useState<AppSettings | null>(null);
   const [savedMessage, setSavedMessage] = useState(false);
 
   useEffect(() => {
     (async () => {
-      const [loadedCats, loadedSnacks, loadedMedicines, loadedSettings] = await Promise.all([
+      const [loadedCats, loadedSnacks, loadedMedicines, loadedReminders, loadedSettings] = await Promise.all([
         getCats(),
         getSnacks(),
         getMedicines(),
+        getReminders(),
         getSettings(),
       ]);
       setCats(loadedCats);
       setSnacks(loadedSnacks);
       setMedicines(loadedMedicines);
+      setReminders(loadedReminders);
       setSettings(loadedSettings);
       setLoading(false);
     })();
@@ -111,6 +120,36 @@ export default function SettingsScreen() {
     setMedicines((prev) => prev.filter((medicine) => medicine.id !== id));
   };
 
+  const medicineReminders = reminders.filter((reminder) => reminder.category === "medicine");
+  const generalReminder = reminders.find((reminder) => reminder.category === "general");
+
+  const toggleReminder = async (id: string, enabled: boolean) => {
+    if (enabled) {
+      const granted = await requestNotificationPermission();
+      if (!granted) {
+        Alert.alert("알림 권한이 필요해요", "기기 설정에서 냥로그의 알림 권한을 허용해주세요.");
+        return;
+      }
+    }
+    setReminders((prev) => prev.map((r) => (r.id === id ? { ...r, enabled } : r)));
+  };
+
+  const changeReminderTime = (id: string, hour: number, minute: number) => {
+    setReminders((prev) => prev.map((r) => (r.id === id ? { ...r, hour, minute } : r)));
+  };
+
+  const addMedicineReminder = () => {
+    if (medicineReminders.length >= MAX_MEDICINE_REMINDERS) return;
+    setReminders((prev) => [
+      ...prev,
+      { id: generateId(), category: "medicine", enabled: false, hour: 9, minute: 0 },
+    ]);
+  };
+
+  const removeMedicineReminder = (id: string) => {
+    setReminders((prev) => prev.filter((r) => r.id !== id));
+  };
+
   const handleSave = async () => {
     if (!canSave || !settings) return;
     const trimmedCats = cats.map((cat) => ({ ...cat, name: cat.name.trim() }));
@@ -124,7 +163,9 @@ export default function SettingsScreen() {
     await saveCats(trimmedCats);
     await saveSnacks(trimmedSnacks);
     await saveMedicines(trimmedMedicines);
+    await saveReminders(reminders);
     await saveSettings(settings);
+    await syncAllReminderSchedules(reminders, trimmedCats);
     setCats(trimmedCats);
     setSnacks(trimmedSnacks);
     setMedicines(trimmedMedicines);
@@ -206,6 +247,38 @@ export default function SettingsScreen() {
           addLabel="+ 약 추가"
           itemPlaceholder="약 이름"
         />
+
+        <Text style={styles.sectionLabel}>알림</Text>
+        <View style={styles.reminderCard}>
+          <Text style={styles.reminderCardTitle}>🔔 통합 알림</Text>
+          {generalReminder && (
+            <ReminderRow
+              reminder={generalReminder}
+              onToggle={(enabled) => toggleReminder(generalReminder.id, enabled)}
+              onChangeTime={(hour, minute) => changeReminderTime(generalReminder.id, hour, minute)}
+            />
+          )}
+        </View>
+
+        <View style={styles.reminderCard}>
+          <Text style={styles.reminderCardTitle}>💊 투약 알림</Text>
+          {medicineReminders.map((reminder) => (
+            <ReminderRow
+              key={reminder.id}
+              reminder={reminder}
+              onToggle={(enabled) => toggleReminder(reminder.id, enabled)}
+              onChangeTime={(hour, minute) => changeReminderTime(reminder.id, hour, minute)}
+              onRemove={
+                medicineReminders.length > 1 ? () => removeMedicineReminder(reminder.id) : undefined
+              }
+            />
+          ))}
+          {medicineReminders.length < MAX_MEDICINE_REMINDERS && (
+            <Pressable style={styles.addReminderButton} onPress={addMedicineReminder}>
+              <Text style={styles.addReminderButtonText}>+ 알림 추가</Text>
+            </Pressable>
+          )}
+        </View>
 
         {savedMessage && <Text style={styles.savedMessage}>저장되었어요</Text>}
       </ScrollView>
@@ -320,6 +393,32 @@ const styles = StyleSheet.create({
   },
   savedMessage: {
     textAlign: "center",
+    fontSize: 14,
+    fontFamily: FONTS.semiBold,
+    color: COLORS.accent,
+  },
+  reminderCard: {
+    borderRadius: 20,
+    borderWidth: 2,
+    borderColor: COLORS.cardBorder,
+    backgroundColor: COLORS.cardBackground,
+    padding: 18,
+    gap: 14,
+  },
+  reminderCardTitle: {
+    fontSize: 15,
+    fontFamily: FONTS.semiBold,
+    color: COLORS.textStrong,
+  },
+  addReminderButton: {
+    borderRadius: 16,
+    borderWidth: 2,
+    borderColor: COLORS.cardBorder,
+    borderStyle: "dashed",
+    paddingVertical: 12,
+    alignItems: "center",
+  },
+  addReminderButtonText: {
     fontSize: 14,
     fontFamily: FONTS.semiBold,
     color: COLORS.accent,
