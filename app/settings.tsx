@@ -262,15 +262,16 @@ export default function SettingsScreen() {
 
         <View style={styles.reminderCard}>
           <Text style={styles.reminderCardTitle}>💊 투약 알림</Text>
+          {medicineReminders.length === 0 && (
+            <Text style={styles.reminderEmptyText}>등록된 투약 알림이 없어요</Text>
+          )}
           {medicineReminders.map((reminder) => (
             <ReminderRow
               key={reminder.id}
               reminder={reminder}
               onToggle={(enabled) => toggleReminder(reminder.id, enabled)}
               onChangeTime={(hour, minute) => changeReminderTime(reminder.id, hour, minute)}
-              onRemove={
-                medicineReminders.length > 1 ? () => removeMedicineReminder(reminder.id) : undefined
-              }
+              onRemove={() => removeMedicineReminder(reminder.id)}
             />
           ))}
           {medicineReminders.length < MAX_MEDICINE_REMINDERS && (
@@ -409,6 +410,11 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontFamily: FONTS.semiBold,
     color: COLORS.textStrong,
+  },
+  reminderEmptyText: {
+    fontSize: 14,
+    fontFamily: FONTS.regular,
+    color: COLORS.textMuted,
   },
   addReminderButton: {
     borderRadius: 16,

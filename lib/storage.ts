@@ -13,7 +13,6 @@ const KEYS = {
 
 const DEFAULT_REMINDERS: Reminder[] = [
   { id: "reminder-general", category: "general", enabled: false, hour: 20, minute: 0 },
-  { id: "reminder-medicine-default", category: "medicine", enabled: false, hour: 9, minute: 0 },
 ];
 
 const DEFAULT_SETTINGS: AppSettings = {
