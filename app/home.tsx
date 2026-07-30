@@ -10,17 +10,18 @@ import PrimaryButton from "../components/PrimaryButton";
 import { daysSinceBirth, formatDisplayDate, todayString } from "../lib/date";
 import { generateId } from "../lib/id";
 import {
+  DEFAULT_FEED_UNIT,
+  DEFAULT_TRACKING_ITEMS,
   getCats,
   getMedicines,
   getRecords,
-  getSettings,
   getSnacks,
   saveMedicines,
   saveRecords,
   saveSnacks,
 } from "../lib/storage";
 import { COLORS, FONTS } from "../lib/theme";
-import type { AppSettings, Cat, DailyRecord, Medicine, Snack } from "../lib/types";
+import type { Cat, DailyRecord, Medicine, Snack } from "../lib/types";
 
 const MIN_MONTH = new Date(2026, 6, 1);
 const MAX_MONTH = new Date(2029, 11, 1);
@@ -46,7 +47,6 @@ export default function HomeScreen() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [cats, setCats] = useState<Cat[]>([]);
-  const [settings, setSettings] = useState<AppSettings | null>(null);
   const [snacks, setSnacks] = useState<Snack[]>([]);
   const [medicines, setMedicines] = useState<Medicine[]>([]);
   const [allRecords, setAllRecords] = useState<DailyRecord[]>([]);
@@ -63,16 +63,14 @@ export default function HomeScreen() {
     useCallback(() => {
       let cancelled = false;
       (async () => {
-        const [loadedCats, loadedSettings, loadedSnacks, loadedMedicines, loadedRecords] = await Promise.all([
+        const [loadedCats, loadedSnacks, loadedMedicines, loadedRecords] = await Promise.all([
           getCats(),
-          getSettings(),
           getSnacks(),
           getMedicines(),
           getRecords(),
         ]);
         if (cancelled) return;
         setCats(loadedCats);
-        setSettings(loadedSettings);
         setSnacks(loadedSnacks);
         setMedicines(loadedMedicines);
         setAllRecords(loadedRecords);
@@ -96,7 +94,7 @@ export default function HomeScreen() {
     setRecord(existing ?? emptyRecord(selectedCatId, selectedDate));
   }, [selectedCatId, selectedDate, allRecords]);
 
-  if (loading || !settings) {
+  if (loading) {
     return <SafeAreaView style={styles.container} />;
   }
 
@@ -170,7 +168,8 @@ export default function HomeScreen() {
               dateLabel={dateLabel}
               record={record}
               onChangeRecord={(updater) => setRecord((prev) => (prev ? updater(prev) : prev))}
-              settings={settings}
+              trackingItems={selectedCat?.trackingItems ?? DEFAULT_TRACKING_ITEMS}
+              feedUnit={selectedCat?.feedUnit ?? DEFAULT_FEED_UNIT}
               snacks={snacks}
               onCreateSnack={handleCreateSnack}
               medicines={medicines}

@@ -14,6 +14,8 @@ export interface Cat {
   photoUri?: string;
   birthDate?: string;
   createdAt: string;
+  trackingItems: TrackingItems;
+  feedUnit: FeedUnit;
 }
 
 export interface Snack {
@@ -87,6 +89,4 @@ export interface TrackingItems {
 export interface AppSettings {
   onboardingCompleted: boolean;
   householdType: HouseholdType;
-  feedUnit: FeedUnit;
-  trackingItems: TrackingItems;
 }

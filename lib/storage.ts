@@ -1,6 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-import type { AppSettings, Cat, DailyRecord, Medicine, Reminder, Snack } from "./types";
+import type { AppSettings, Cat, DailyRecord, FeedUnit, Medicine, Reminder, Snack, TrackingItems } from "./types";
 
 const KEYS = {
   settings: "nyanglog:settings",
@@ -18,29 +18,27 @@ const DEFAULT_REMINDERS: Reminder[] = [
 const DEFAULT_SETTINGS: AppSettings = {
   onboardingCompleted: false,
   householdType: "single",
-  feedUnit: "bowl",
-  trackingItems: {
-    poop: true,
-    litterBox: true,
-    feed: true,
-    water: true,
-    snack: true,
-    vomit: true,
-    medicine: true,
-    weight: true,
-    play: true,
-  },
 };
+
+export const DEFAULT_TRACKING_ITEMS: TrackingItems = {
+  poop: true,
+  litterBox: true,
+  feed: true,
+  water: true,
+  snack: true,
+  vomit: true,
+  medicine: true,
+  weight: true,
+  play: true,
+};
+
+export const DEFAULT_FEED_UNIT: FeedUnit = "bowl";
 
 export async function getSettings(): Promise<AppSettings> {
   const raw = await AsyncStorage.getItem(KEYS.settings);
   if (!raw) return DEFAULT_SETTINGS;
   const parsed = JSON.parse(raw);
-  return {
-    ...DEFAULT_SETTINGS,
-    ...parsed,
-    trackingItems: { ...DEFAULT_SETTINGS.trackingItems, ...parsed.trackingItems },
-  };
+  return { ...DEFAULT_SETTINGS, ...parsed };
 }
 
 export async function saveSettings(settings: AppSettings): Promise<void> {
@@ -49,7 +47,12 @@ export async function saveSettings(settings: AppSettings): Promise<void> {
 
 export async function getCats(): Promise<Cat[]> {
   const raw = await AsyncStorage.getItem(KEYS.cats);
-  return raw ? JSON.parse(raw) : [];
+  const parsed: Cat[] = raw ? JSON.parse(raw) : [];
+  return parsed.map((cat) => ({
+    ...cat,
+    trackingItems: { ...DEFAULT_TRACKING_ITEMS, ...cat.trackingItems },
+    feedUnit: cat.feedUnit ?? DEFAULT_FEED_UNIT,
+  }));
 }
 
 export async function saveCats(cats: Cat[]): Promise<void> {

@@ -15,16 +15,14 @@ import {
   getCats,
   getMedicines,
   getReminders,
-  getSettings,
   getSnacks,
   saveCats,
   saveMedicines,
   saveReminders,
-  saveSettings,
   saveSnacks,
 } from "../lib/storage";
 import { COLORS, FONTS } from "../lib/theme";
-import type { AppSettings, Cat, FeedUnit, Medicine, Reminder, Snack, TrackingItems } from "../lib/types";
+import type { Cat, FeedUnit, Medicine, Reminder, Snack, TrackingItems } from "../lib/types";
 
 const MAX_MEDICINE_REMINDERS = 5;
 
@@ -35,38 +33,42 @@ export default function SettingsScreen() {
   const [snacks, setSnacks] = useState<Snack[]>([]);
   const [medicines, setMedicines] = useState<Medicine[]>([]);
   const [reminders, setReminders] = useState<Reminder[]>([]);
-  const [settings, setSettings] = useState<AppSettings | null>(null);
   const [savedMessage, setSavedMessage] = useState(false);
+  const [trackingCatId, setTrackingCatId] = useState<string | null>(null);
 
   useEffect(() => {
     (async () => {
-      const [loadedCats, loadedSnacks, loadedMedicines, loadedReminders, loadedSettings] = await Promise.all([
+      const [loadedCats, loadedSnacks, loadedMedicines, loadedReminders] = await Promise.all([
         getCats(),
         getSnacks(),
         getMedicines(),
         getReminders(),
-        getSettings(),
       ]);
       setCats(loadedCats);
       setSnacks(loadedSnacks);
       setMedicines(loadedMedicines);
       setReminders(loadedReminders);
-      setSettings(loadedSettings);
+      setTrackingCatId(loadedCats[0]?.id ?? null);
       setLoading(false);
     })();
   }, []);
 
-  const toggleTrackingItem = (key: keyof TrackingItems) => {
-    setSettings((prev) =>
-      prev ? { ...prev, trackingItems: { ...prev.trackingItems, [key]: !prev.trackingItems[key] } } : prev
+  const toggleCatTrackingItem = (catId: string, key: keyof TrackingItems) => {
+    setCats((prev) =>
+      prev.map((cat) =>
+        cat.id === catId
+          ? { ...cat, trackingItems: { ...cat.trackingItems, [key]: !cat.trackingItems[key] } }
+          : cat
+      )
     );
   };
 
-  const changeFeedUnit = (feedUnit: FeedUnit) => {
-    setSettings((prev) => (prev ? { ...prev, feedUnit } : prev));
+  const changeCatFeedUnit = (catId: string, feedUnit: FeedUnit) => {
+    setCats((prev) => prev.map((cat) => (cat.id === catId ? { ...cat, feedUnit } : cat)));
   };
 
   const canSave = cats.every((cat) => cat.name.trim().length > 0);
+  const trackingCat = cats.find((cat) => cat.id === trackingCatId) ?? cats[0];
 
   const updateCatName = (id: string, name: string) => {
     setCats((prev) => prev.map((cat) => (cat.id === id ? { ...cat, name } : cat)));
@@ -151,7 +153,7 @@ export default function SettingsScreen() {
   };
 
   const handleSave = async () => {
-    if (!canSave || !settings) return;
+    if (!canSave) return;
     const trimmedCats = cats.map((cat) => ({ ...cat, name: cat.name.trim() }));
     const trimmedSnacks = snacks
       .map((snack) => ({ ...snack, name: snack.name.trim() }))
@@ -164,7 +166,6 @@ export default function SettingsScreen() {
     await saveSnacks(trimmedSnacks);
     await saveMedicines(trimmedMedicines);
     await saveReminders(reminders);
-    await saveSettings(settings);
     await syncAllReminderSchedules(reminders, trimmedCats);
     setCats(trimmedCats);
     setSnacks(trimmedSnacks);
@@ -173,7 +174,7 @@ export default function SettingsScreen() {
     setTimeout(() => setSavedMessage(false), 1500);
   };
 
-  if (loading || !settings) {
+  if (loading) {
     return <SafeAreaView style={styles.container} />;
   }
 
@@ -221,12 +222,31 @@ export default function SettingsScreen() {
         ))}
 
         <Text style={styles.sectionLabel}>기록 항목</Text>
-        <TrackingItemsEditor
-          trackingItems={settings.trackingItems}
-          feedUnit={settings.feedUnit}
-          onToggleItem={toggleTrackingItem}
-          onChangeFeedUnit={changeFeedUnit}
-        />
+        {cats.length > 1 && (
+          <View style={styles.catSwitcher}>
+            {cats.map((cat) => (
+              <Pressable
+                key={cat.id}
+                style={[styles.catChip, cat.id === trackingCatId && styles.catChipSelected]}
+                onPress={() => setTrackingCatId(cat.id)}
+              >
+                <Text
+                  style={[styles.catChipLabel, cat.id === trackingCatId && styles.catChipLabelSelected]}
+                >
+                  {cat.name.trim() || "이름 없음"}
+                </Text>
+              </Pressable>
+            ))}
+          </View>
+        )}
+        {trackingCat && (
+          <TrackingItemsEditor
+            trackingItems={trackingCat.trackingItems}
+            feedUnit={trackingCat.feedUnit}
+            onToggleItem={(key) => toggleCatTrackingItem(trackingCat.id, key)}
+            onChangeFeedUnit={(unit) => changeCatFeedUnit(trackingCat.id, unit)}
+          />
+        )}
 
         <Text style={styles.sectionLabel}>간식 관리</Text>
         <NamedListEditor
@@ -325,6 +345,31 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.semiBold,
     color: COLORS.textMuted,
     marginTop: 8,
+  },
+  catSwitcher: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+  },
+  catChip: {
+    borderRadius: 14,
+    borderWidth: 2,
+    borderColor: COLORS.cardBorder,
+    backgroundColor: COLORS.cardBackground,
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+  },
+  catChipSelected: {
+    borderColor: COLORS.accent,
+    backgroundColor: COLORS.accentTint,
+  },
+  catChipLabel: {
+    fontSize: 14,
+    fontFamily: FONTS.semiBold,
+    color: COLORS.textStrong,
+  },
+  catChipLabelSelected: {
+    color: COLORS.accent,
   },
   catCard: {
     borderRadius: 24,

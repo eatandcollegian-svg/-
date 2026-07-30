@@ -4,9 +4,9 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { buildPeriodStats } from "../lib/periodStats";
-import { getCats, getRecords, getSettings } from "../lib/storage";
+import { getCats, getRecords } from "../lib/storage";
 import { COLORS, FONTS } from "../lib/theme";
-import type { AppSettings, Cat, DailyRecord, FeedUnit } from "../lib/types";
+import type { Cat, DailyRecord, FeedUnit } from "../lib/types";
 
 type Period = "week" | "month";
 
@@ -16,24 +16,18 @@ export default function PeriodReportScreen() {
   const [loading, setLoading] = useState(true);
   const [cats, setCats] = useState<Cat[]>([]);
   const [records, setRecords] = useState<DailyRecord[]>([]);
-  const [settings, setSettings] = useState<AppSettings | null>(null);
   const [period, setPeriod] = useState<Period>("week");
 
   useEffect(() => {
     (async () => {
-      const [loadedCats, loadedRecords, loadedSettings] = await Promise.all([
-        getCats(),
-        getRecords(),
-        getSettings(),
-      ]);
+      const [loadedCats, loadedRecords] = await Promise.all([getCats(), getRecords()]);
       setCats(loadedCats);
       setRecords(loadedRecords);
-      setSettings(loadedSettings);
       setLoading(false);
     })();
   }, []);
 
-  if (loading || !settings) {
+  if (loading) {
     return <SafeAreaView style={styles.container} />;
   }
 
@@ -60,7 +54,7 @@ export default function PeriodReportScreen() {
 
           <PeriodStatsView
             stats={buildPeriodStats(records, cat.id, period === "week" ? 7 : 30, new Date())}
-            feedUnit={settings.feedUnit}
+            feedUnit={cat.feedUnit}
           />
         </ScrollView>
       )}

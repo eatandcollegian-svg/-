@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { ScrollView, StyleSheet } from "react-native";
 import { useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -6,36 +6,24 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import PrimaryButton from "../../components/PrimaryButton";
 import StepHeader from "../../components/StepHeader";
 import TrackingItemsEditor from "../../components/TrackingItemsEditor";
-import { getSettings, saveSettings } from "../../lib/storage";
+import { DEFAULT_FEED_UNIT, DEFAULT_TRACKING_ITEMS, getCats, saveCats } from "../../lib/storage";
 import { COLORS } from "../../lib/theme";
 import type { FeedUnit, TrackingItems } from "../../lib/types";
 
 export default function OnboardingTrackingItemsScreen() {
   const router = useRouter();
-  const [trackingItems, setTrackingItems] = useState<TrackingItems | null>(null);
-  const [feedUnit, setFeedUnit] = useState<FeedUnit>("bowl");
-
-  useEffect(() => {
-    getSettings().then((settings) => {
-      setTrackingItems(settings.trackingItems);
-      setFeedUnit(settings.feedUnit);
-    });
-  }, []);
+  const [trackingItems, setTrackingItems] = useState<TrackingItems>(DEFAULT_TRACKING_ITEMS);
+  const [feedUnit, setFeedUnit] = useState<FeedUnit>(DEFAULT_FEED_UNIT);
 
   const toggleItem = (key: keyof TrackingItems) => {
-    setTrackingItems((prev) => (prev ? { ...prev, [key]: !prev[key] } : prev));
+    setTrackingItems((prev) => ({ ...prev, [key]: !prev[key] }));
   };
 
   const handleNext = async () => {
-    if (!trackingItems) return;
-    const settings = await getSettings();
-    await saveSettings({ ...settings, trackingItems, feedUnit });
+    const cats = await getCats();
+    await saveCats(cats.map((cat) => ({ ...cat, trackingItems, feedUnit })));
     router.push("/onboarding/complete");
   };
-
-  if (!trackingItems) {
-    return <SafeAreaView style={styles.container} />;
-  }
 
   return (
     <SafeAreaView style={styles.container}>

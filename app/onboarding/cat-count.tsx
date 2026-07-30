@@ -8,7 +8,7 @@ import BirthDateInput from "../../components/BirthDateInput";
 import PrimaryButton from "../../components/PrimaryButton";
 import StepHeader from "../../components/StepHeader";
 import { generateId } from "../../lib/id";
-import { getSettings, saveCats } from "../../lib/storage";
+import { DEFAULT_FEED_UNIT, DEFAULT_TRACKING_ITEMS, getSettings, saveCats } from "../../lib/storage";
 import { COLORS, FONTS } from "../../lib/theme";
 import type { HouseholdType } from "../../lib/types";
 
@@ -77,6 +77,8 @@ export default function OnboardingCatRegisterScreen() {
         photoUri: cat.photoUri,
         birthDate: cat.birthDate,
         createdAt: now,
+        trackingItems: DEFAULT_TRACKING_ITEMS,
+        feedUnit: DEFAULT_FEED_UNIT,
       }))
     );
     router.push("/onboarding/tracking-items");

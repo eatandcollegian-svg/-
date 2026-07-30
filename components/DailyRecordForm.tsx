@@ -5,11 +5,12 @@ import ChipMultiPicker from "./ChipMultiPicker";
 import Stepper from "./Stepper";
 import { COLORS, FONTS } from "../lib/theme";
 import type {
-  AppSettings,
   DailyRecord,
+  FeedUnit,
   Medicine,
   PoopCondition,
   Snack,
+  TrackingItems,
   VomitType,
   WaterAmount,
 } from "../lib/types";
@@ -25,7 +26,8 @@ export default function DailyRecordForm({
   dateLabel,
   record,
   onChangeRecord,
-  settings,
+  trackingItems,
+  feedUnit,
   snacks,
   onCreateSnack,
   medicines,
@@ -36,14 +38,15 @@ export default function DailyRecordForm({
   dateLabel: string;
   record: DailyRecord;
   onChangeRecord: (updater: (prev: DailyRecord) => DailyRecord) => void;
-  settings: AppSettings;
+  trackingItems: TrackingItems;
+  feedUnit: FeedUnit;
   snacks: Snack[];
   onCreateSnack: (name: string) => Promise<Snack>;
   medicines: Medicine[];
   onCreateMedicine: (name: string) => Promise<Medicine>;
   savedMessage: boolean;
 }) {
-  const tracking = settings.trackingItems;
+  const tracking = trackingItems;
   const feedBowlLabel = record.feed?.unit === "bowl" ? `${record.feed.amount}그릇` : null;
 
   const toggleSnack = (snackId: string) => {
@@ -106,8 +109,8 @@ export default function DailyRecordForm({
       )}
 
       {tracking.feed && (
-        <Section emoji="🍚" title={`사료 (${settings.feedUnit === "bowl" ? "그릇" : "g"})`}>
-          {settings.feedUnit === "bowl" ? (
+        <Section emoji="🍚" title={`사료 (${feedUnit === "bowl" ? "그릇" : "g"})`}>
+          {feedUnit === "bowl" ? (
             <ChipGroup
               options={BOWL_LABELS}
               selected={feedBowlLabel}
